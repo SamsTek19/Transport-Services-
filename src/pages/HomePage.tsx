@@ -170,7 +170,7 @@ export function HomePage() {
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-teal-500 to-teal-600 rounded-3xl opacity-20 blur-2xl"></div>
               <img
-                src="https://images.unsplash.com/photo-1635831205769-0372d6df9d84?w=800&q=80"
+                src="https://res.cloudinary.com/dzydzt8x8/image/upload/v1782159429/774-219-1809_kwnk93.jpg"
                 alt="Professional driver helping passenger"
                 className="relative rounded-2xl shadow-2xl object-cover w-full h-96"
               />
