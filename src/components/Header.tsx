@@ -53,11 +53,11 @@ export function Header() {
 
           <div className="hidden md:flex items-center gap-4">
             <a
-              href="tel:+17039805916"
+              href="tel:+17034521665"
               className="flex items-center gap-2 text-gray-600 hover:text-teal-600 transition-colors"
             >
               <Phone className="w-5 h-5" />
-              <span className="font-medium">(703) 980-5916</span>
+              <span className="font-medium">(703) 452-1665</span>
             </a>
             <button
               onClick={() => handleNav('book')}
@@ -97,11 +97,11 @@ export function Header() {
               ))}
               <div className="flex flex-col gap-3 mt-4 px-4">
                 <a
-                  href="tel:+17039805916"
+                  href="tel:+17034521665"
                   className="flex items-center justify-center gap-2 py-3 text-teal-600 font-medium bg-teal-50 rounded-lg"
                 >
                   <Phone className="w-5 h-5" />
-                  (703) 980-5916
+                  (703) 452-1665
                 </a>
                 <button
                   onClick={() => handleNav('book')}

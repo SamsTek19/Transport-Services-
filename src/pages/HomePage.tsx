@@ -1,5 +1,6 @@
 import { Phone, Shield, Clock, Heart, ChevronRight, Star, Users, Award } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
+import { ServiceAreas } from '../components/ServiceAreas';
 
 const services = [
   {

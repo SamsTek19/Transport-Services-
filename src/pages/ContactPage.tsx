@@ -41,10 +41,10 @@ export function ContactPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Call Us</h3>
               <a
-                href="tel:+17039805916"
+                href="tel:+17034521665"
                 className="text-teal-600 font-semibold text-lg hover:text-teal-700 transition-colors"
               >
-                +1 (703) 980-5916
+                +1 (703) 452-1665
               </a>
               <p className="text-gray-500 text-sm mt-2">Available during business hours</p>
             </div>
@@ -160,7 +160,7 @@ export function ContactPage() {
             {[
               {
                 q: 'How do I book a ride?',
-                a: 'You can book a ride by calling us at (703) 980-5916 or using our online booking form. We recommend booking at least 24 hours in advance.',
+                a: 'You can book a ride by calling us at (703) 452-1665 or using our online booking form. We recommend booking at least 24 hours in advance.',
               },
               {
                 q: 'Do you offer wheelchair accessible vehicles?',
@@ -216,7 +216,7 @@ export function ContactPage() {
               Book Online
             </button>
             <a
-              href="tel:+17039805916"
+              href="tel:+17034521665"
               className="bg-teal-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-teal-800 transition-all flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />
