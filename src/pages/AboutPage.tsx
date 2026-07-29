@@ -55,7 +55,7 @@ export function AboutPage() {
             Angels Of Hope Transportation
           </h1>
           <p className="text-teal-100 text-lg max-w-2xl mx-auto">
-            Dedicated to providing safe, reliable, and compassionate non-emergency medical transportation services.
+            Dedicated to providing safe, reliable, and compassionate non-emergency medical transportation and wheelchair transportation services across Northern Virginia.
           </p>
         </div>
       </section>

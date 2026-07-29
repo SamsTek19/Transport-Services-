@@ -25,7 +25,7 @@ export function ContactPage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Contact Us</h1>
           <p className="text-teal-100 text-lg max-w-2xl mx-auto">
-            Have questions or need assistance? We're here to help you with all your transportation needs.
+            Have questions about NEMT near you, wheelchair transportation, dialysis transportation, or medical transport in Manassas, Fairfax, Alexandria, Arlington, or Prince William County? We’re here to help.
           </p>
         </div>
       </section>

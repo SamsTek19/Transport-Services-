@@ -106,10 +106,10 @@ export function ServicesPage() {
             <span className="text-teal-100 text-sm font-medium">Comprehensive Care</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Our Transportation Services
+            Medical Transportation Services in Northern Virginia
           </h1>
           <p className="text-teal-100 text-lg max-w-2xl mx-auto">
-            Professional, compassionate transportation services designed for your comfort and safety.
+            Professional NEMT, wheelchair transportation, dialysis transportation, and private medical transportation serving Manassas, Manassas Park, Woodbridge, Fairfax, Alexandria, Arlington, and Prince William County.
           </p>
         </div>
       </section>

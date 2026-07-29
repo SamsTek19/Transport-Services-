@@ -7,9 +7,15 @@ import { ContactPage } from './pages/ContactPage';
 import { BookPage } from './pages/BookPage';
 import { AdminPage } from './pages/AdminPage';
 import { useNavigation } from './hooks/useNavigation';
+import { updatePageMetadata } from './seo';
+import { useEffect } from 'react';
 
 function App() {
   const { currentPage } = useNavigation();
+
+  useEffect(() => {
+    updatePageMetadata(currentPage);
+  }, [currentPage]);
 
   if (currentPage === 'admin') {
     return <AdminPage />;

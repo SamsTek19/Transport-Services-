@@ -52,12 +52,11 @@ export function HomePage() {
               <span className="text-teal-100 text-sm font-medium">Trusted by families across Northern Virginia</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-              Safe & Reliable{' '}
-              <span className="text-teal-300">Transportation</span>{' '}
-              You Can Trust
+              NEMT & Wheelchair Transportation in{' '}
+              <span className="text-teal-300">Northern Virginia</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-              Compassionate non-emergency medical transportation services. We get you there safely, comfortably, and on time.
+              Reliable non-emergency medical transportation for appointments, dialysis, wheelchair access, and private medical travel across Manassas, Manassas Park, Woodbridge, Fairfax, Alexandria, Arlington, and Prince William County.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
@@ -106,7 +105,7 @@ export function HomePage() {
               Transportation Solutions for Every Need
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              We provide a wide range of transportation services tailored to meet your specific requirements.
+              We provide dependable NEMT, wheelchair transportation, dialysis transportation, and private medical transportation services throughout Northern Virginia.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
