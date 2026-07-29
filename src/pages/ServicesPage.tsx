@@ -3,69 +3,102 @@ import { useNavigation, Page } from '../hooks/useNavigation';
 
 const services = [
   {
-    icon: '🏥',
-    title: 'Medical Appointment Transportation',
-    description: 'Reliable, on-time transportation to and from doctor visits, dialysis appointments, physical therapy, and other medical appointments. Our drivers are trained to assist patients and ensure you arrive comfortably.',
+    icon: '🩺',
+    title: 'Non-Emergency Medical Transportation (NEMT)',
+    description: 'Safe and reliable transportation for medical visits, treatments, and recurring care needs without the stress of driving yourself.',
     features: [
-      'Door-to-door service',
-      'On-time guaranteed arrivals',
-      'Assistance with mobility aids',
-      'Wait time for appointments available',
-    ],
-  },
-  {
-    icon: '✈️',
-    title: 'Airport & Long Distance Travel',
-    description: 'Stress-free airport transportation and long-distance travel services. We handle your luggage and ensure you arrive at your destination relaxed and on schedule.',
-    features: [
-      'Flight tracking for pickups',
-      'Luggage assistance',
-      'Comfortable, spacious vehicles',
-      'Early morning & late night availability',
-    ],
-  },
-  {
-    icon: '👴',
-    title: 'Senior Transportation Services',
-    description: 'Compassionate transportation designed specifically for elderly passengers. Our drivers are patient, respectful, and trained to provide the extra care seniors deserve.',
-    features: [
-      'Patient, experienced drivers',
-      'Easy vehicle entry/exit',
-      'Companion seating available',
-      'Regular appointment scheduling',
+      'Door-to-door pickup and drop-off',
+      'Scheduled rides for appointments',
+      'Comfortable, medically focused transport',
+      'Ideal for seniors and patients with mobility needs',
     ],
   },
   {
     icon: '♿',
-    title: 'Wheelchair Accessible Vehicles',
-    description: 'Our fleet includes fully equipped wheelchair accessible vehicles. Safe, dignified transportation for passengers requiring mobility assistance.',
+    title: 'Wheelchair Transportation',
+    description: 'Accessible transportation for passengers who need wheelchair-friendly vehicles and trained assistance throughout the trip.',
     features: [
-      'ADA-compliant vehicles',
-      'Hydraulic lifts and ramps',
-      'Secured wheelchair transport',
-      'Trained mobility assistance',
+      'Wheelchair-accessible vehicles',
+      'Secure loading and unloading support',
+      'Mobility assistance from trained staff',
+      'Safe transportation for medical and personal travel',
+    ],
+  },
+  {
+    icon: '🚶',
+    title: 'Ambulatory Transportation',
+    description: 'Reliable transportation for patients who are able to walk, but still need dependable support getting to appointments and treatments.',
+    features: [
+      'Assistance with getting in and out of the vehicle',
+      'Great for outpatient visits and therapy',
+      'Flexible scheduling for recurring appointments',
+      'Comfortable, non-emergency service',
     ],
   },
   {
     icon: '🏥',
     title: 'Hospital Discharge Transportation',
-    description: 'Safe transportation home after hospital stays or procedures. We coordinate with hospital staff and ensure you get home comfortably.',
+    description: 'Prompt transportation home after a hospital stay, procedure, or outpatient treatment so you can recover safely and comfortably.',
     features: [
-      'Hospital coordination',
-      'Discharge timing flexibility',
-      'Comfortable recovery seating',
-      'Family notification available',
+      'Timely pickup after discharge',
+      'Support for recovery and post-care travel',
+      'Coordination with family or care providers',
+      'Safe ride home when you need it most',
     ],
   },
   {
-    icon: '🛒',
-    title: 'Errand & Shopping Assistance',
-    description: 'Transportation for grocery shopping, pharmacy visits, and personal errands. We help you maintain independence and stay connected.',
+    icon: '🩸',
+    title: 'Dialysis Transportation',
+    description: 'Dependable transportation for dialysis appointments with reliable timing and compassionate care for each trip.',
     features: [
-      'Multiple stop availability',
-      'Shopping assistance',
-      'Grocery loading help',
-      'Flexible scheduling',
+      'Regularly scheduled rides',
+      'Punctual arrival for treatment',
+      'Support for patients with ongoing care needs',
+      'Peace of mind for caregivers and families',
+    ],
+  },
+  {
+    icon: '🧑‍⚕️',
+    title: 'Physical Therapy & Rehabilitation Visits',
+    description: 'Transportation for therapy appointments, rehabilitation sessions, and other follow-up visits that are essential to recovery.',
+    features: [
+      'Reliable rides to therapy centers',
+      'Support for recurring visits',
+      'Flexible scheduling around treatment plans',
+      'Comfortable travel for recovery support',
+    ],
+  },
+  {
+    icon: '🩺',
+    title: 'Doctor & Specialist Appointments',
+    description: 'On-time transportation to primary care offices, specialists, and other medical appointments across Northern Virginia.',
+    features: [
+      'Appointment-focused scheduling',
+      'Wait time available during your visit',
+      'Helpful support for sensitive or long appointments',
+      'Dependable transportation for every visit',
+    ],
+  },
+  {
+    icon: '✈️',
+    title: 'Airport Transportation (Private Pay)',
+    description: 'Private transportation to and from major airports for travelers who want a comfortable and reliable ride.',
+    features: [
+      'Airport pickup and drop-off',
+      'Luggage assistance available',
+      'Punctual service for flights and arrivals',
+      'Private, comfortable travel experience',
+    ],
+  },
+  {
+    icon: '🛣️',
+    title: 'Long-Distance Medical Transportation',
+    description: 'Safe long-distance transportation for medical appointments, treatments, and care needs outside your local area.',
+    features: [
+      'Travel for specialty care and treatment centers',
+      'Comfortable ride for longer journeys',
+      'Flexible planning for non-local appointments',
+      'Dependable service for medical travel needs',
     ],
   },
 ];
@@ -117,7 +150,13 @@ export function ServicesPage() {
       {/* Services Grid */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Core Transportation Services</h2>
+            <p className="text-gray-600 max-w-3xl mx-auto">
+              From routine medical visits to wheelchair-accessible transport and long-distance care travel, we offer clear, dependable transportation solutions for every need.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <div
                 key={index}
