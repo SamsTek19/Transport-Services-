@@ -56,10 +56,10 @@ export function ContactPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Email Us</h3>
               <a
-                href="mailto:isaacaopoku@yahoo.com"
+                href="mailto:info@angelsofhopetransportation.com"
                 className="text-teal-600 font-semibold hover:text-teal-700 transition-colors break-all"
               >
-                isaacaopoku@yahoo.com
+                info@angelsofhopetransportation.com
               </a>
               <p className="text-gray-500 text-sm mt-2">We'll respond within 24 hours</p>
             </div>
