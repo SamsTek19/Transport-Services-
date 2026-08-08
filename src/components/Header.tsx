@@ -26,9 +26,11 @@ export function Header() {
             onClick={() => handleNav('home')}
             className="flex items-center gap-3 group"
           >
-            <div className="bg-gradient-to-br from-teal-600 to-teal-700 p-2.5 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-              <Car className="w-7 h-7 text-white" />
-            </div>
+            <img
+              src="https://res.cloudinary.com/dzydzt8x8/image/upload/v1785950925/download-removebg-preview_jahxms.png"
+              alt="Angels Of Hope logo"
+              className="w-12 h-12 rounded-xl shadow-lg object-contain"
+            />
             <div className="flex flex-col">
               <span className="text-xl font-bold text-gray-900">Angels Of Hope</span>
               <span className="text-sm text-teal-600 font-medium -mt-0.5">Transportation</span>

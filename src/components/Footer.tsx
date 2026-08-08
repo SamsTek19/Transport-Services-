@@ -15,9 +15,11 @@ export function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="bg-teal-600 p-2.5 rounded-xl">
-                <Car className="w-7 h-7 text-white" />
-              </div>
+              <img
+                src="https://res.cloudinary.com/dzydzt8x8/image/upload/v1785950925/download-removebg-preview_jahxms.png"
+                alt="Angels Of Hope logo"
+                className="w-12 h-12 rounded-xl object-contain"
+              />
               <div className="flex flex-col">
                 <span className="text-xl font-bold">Angels Of Hope</span>
                 <span className="text-sm text-teal-400 font-medium -mt-0.5">Transportation</span>
@@ -27,15 +29,18 @@ export function Footer() {
               Providing safe, reliable, and compassionate non-emergency medical transportation services.
               Your health and comfort are our top priorities.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors">
+            <div className="flex flex-wrap gap-4">
+              <a href="#" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors" aria-label="Facebook">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors">
+              <a href="#" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors" aria-label="Twitter">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors">
+              <a href="#" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors" aria-label="Instagram">
                 <Instagram className="w-5 h-5" />
+              </a>
+              <a href="mailto:info@angelsofhopetransportation.com" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors" aria-label="Email">
+                <Mail className="w-5 h-5" />
               </a>
             </div>
           </div>
@@ -76,7 +81,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:info@angelsOfHopeTransportation.com"
+                  href="mailto:info@angelsofhopetransportation.com"
                   className="flex items-center gap-3 text-gray-400 hover:text-teal-400 transition-colors"
                 >
                   <Mail className="w-5 h-5 text-teal-500" />

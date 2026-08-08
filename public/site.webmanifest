@@ -4,9 +4,9 @@
   "description": "Non-emergency medical transportation in Northern Virginia",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64",
-      "type": "image/x-icon"
+      "src": "https://res.cloudinary.com/dzydzt8x8/image/upload/v1785950925/download-removebg-preview_jahxms.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "theme_color": "#0f766e",
