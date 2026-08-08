@@ -26,5 +26,5 @@ export function isPasswordSetupPending(session: Session | null): boolean {
 }
 
 export function clearAuthParamsFromUrl() {
-  window.history.replaceState(null, '', `${window.location.pathname}#admin`);
+  window.history.replaceState(null, '', '/admin');
 }

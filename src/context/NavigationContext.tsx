@@ -3,20 +3,24 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 export type Page = 'home' | 'services' | 'about' | 'contact' | 'book' | 'admin';
 
 const VALID_PAGES: Page[] = ['home', 'services', 'about', 'contact', 'book', 'admin'];
+const PAGE_PATHS: Record<Page, string> = {
+  home: '/',
+  services: '/services',
+  about: '/about',
+  contact: '/contact',
+  book: '/book',
+  admin: '/admin',
+};
 
-function getPageFromHash(): Page {
-  const rawHash = window.location.hash.slice(1);
+function getPageFromLocation(): Page {
+  const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
+  const pathPage = pathname === '/' ? 'home' : pathname.slice(1);
 
-  if (!rawHash) {
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('code')) {
-      return 'admin';
-    }
-    return 'home';
-  }
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
 
-  const hashParams = new URLSearchParams(rawHash);
   if (
+    searchParams.get('code') ||
     hashParams.get('access_token') ||
     hashParams.get('type') === 'invite' ||
     hashParams.get('type') === 'signup' ||
@@ -25,8 +29,11 @@ function getPageFromHash(): Page {
     return 'admin';
   }
 
-  const page = rawHash as Page;
-  return VALID_PAGES.includes(page) ? page : 'home';
+  if (VALID_PAGES.includes(pathPage as Page)) {
+    return pathPage as Page;
+  }
+
+  return 'home';
 }
 
 interface NavigationContextValue {
@@ -37,21 +44,26 @@ interface NavigationContextValue {
 const NavigationContext = createContext<NavigationContextValue | null>(null);
 
 export function NavigationProvider({ children }: { children: ReactNode }) {
-  const [currentPage, setCurrentPage] = useState<Page>(getPageFromHash);
+  const [currentPage, setCurrentPage] = useState<Page>(() => getPageFromLocation());
 
   useEffect(() => {
-    const handleHashChange = () => {
-      setCurrentPage(getPageFromHash());
+    const handleLocationChange = () => {
+      setCurrentPage(getPageFromLocation());
       window.scrollTo(0, 0);
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
   }, []);
 
   const navigate = useCallback((page: Page) => {
+    const nextPath = PAGE_PATHS[page];
     setCurrentPage(page);
-    window.location.hash = page;
+    window.history.pushState(null, '', nextPath);
     window.scrollTo(0, 0);
   }, []);
 
