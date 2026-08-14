@@ -1,5 +1,6 @@
 import { Phone, Mail, Clock, MapPin, Car, Facebook, Twitter, Instagram } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
+import { EMAIL, LOGO_PATH, PHONE_DISPLAY_INTL, PHONE_E164 } from '../constants/site';
 
 const businessHours = [
   { day: 'Monday – Thursday', hours: '6:00 AM – 9:00 PM' },
@@ -16,7 +17,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <img
-                src="https://res.cloudinary.com/dzydzt8x8/image/upload/v1785950925/download-removebg-preview_jahxms.png"
+                src={LOGO_PATH}
                 alt="Angels Of Hope logo"
                 className="w-12 h-12 rounded-xl object-contain"
               />
@@ -39,7 +40,7 @@ export function Footer() {
               <a href="#" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors" aria-label="Instagram">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="mailto:info@angelsofhopetransportation.com" className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors" aria-label="Email">
+              <a href={`mailto:${EMAIL}`} className="bg-gray-800 p-3 rounded-xl hover:bg-teal-600 transition-colors" aria-label="Email">
                 <Mail className="w-5 h-5" />
               </a>
             </div>
@@ -72,20 +73,20 @@ export function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="tel:+17034521665"
+                  href={`tel:${PHONE_E164}`}
                   className="flex items-center gap-3 text-gray-400 hover:text-teal-400 transition-colors"
                 >
                   <Phone className="w-5 h-5 text-teal-500" />
-                  +1 (703) 452-1665
+                  {PHONE_DISPLAY_INTL}
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:info@angelsofhopetransportation.com"
+                  href={`mailto:${EMAIL}`}
                   className="flex items-center gap-3 text-gray-400 hover:text-teal-400 transition-colors"
                 >
                   <Mail className="w-5 h-5 text-teal-500" />
-                  info@angelsofhopetransportation.com
+                  {EMAIL}
                 </a>
               </li>
               <li>

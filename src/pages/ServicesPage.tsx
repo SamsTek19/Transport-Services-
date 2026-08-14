@@ -1,5 +1,6 @@
 import { Check, Phone, ArrowRight, Clock, Users, Shield, Car } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
+import { PHONE_E164 } from '../constants/site';
 
 const services = [
   {
@@ -249,7 +250,7 @@ export function ServicesPage() {
               <ArrowRight className="w-5 h-5" />
             </button>
             <a
-              href="tel:+17039805916"
+              href={`tel:${PHONE_E164}`}
               className="bg-teal-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-teal-800 transition-all inline-flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />

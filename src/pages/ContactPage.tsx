@@ -1,5 +1,6 @@
 import { Phone, Mail, Clock, MapPin, MessageSquare, Send } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
+import { EMAIL, PHONE_DISPLAY, PHONE_DISPLAY_INTL, PHONE_E164 } from '../constants/site';
 
 const businessHours = [
   { day: 'Monday', hours: '6:00 AM – 9:00 PM' },
@@ -41,10 +42,10 @@ export function ContactPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Call Us</h3>
               <a
-                href="tel:+17034521665"
+                href={`tel:${PHONE_E164}`}
                 className="text-teal-600 font-semibold text-lg hover:text-teal-700 transition-colors"
               >
-                +1 (703) 452-1665
+                {PHONE_DISPLAY_INTL}
               </a>
               <p className="text-gray-500 text-sm mt-2">Available during business hours</p>
             </div>
@@ -56,10 +57,10 @@ export function ContactPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Email Us</h3>
               <a
-                href="mailto:info@angelsofhopetransportation.com"
+                href={`mailto:${EMAIL}`}
                 className="text-teal-600 font-semibold hover:text-teal-700 transition-colors break-all"
               >
-                info@angelsofhopetransportation.com
+                {EMAIL}
               </a>
               <p className="text-gray-500 text-sm mt-2">We'll respond within 24 hours</p>
             </div>
@@ -160,7 +161,7 @@ export function ContactPage() {
             {[
               {
                 q: 'How do I book a ride?',
-                a: 'You can book a ride by calling us at (703) 452-1665 or using our online booking form. We recommend booking at least 24 hours in advance.',
+                a: `You can book a ride by calling us at ${PHONE_DISPLAY} or using our online booking form. We recommend booking at least 24 hours in advance.`,
               },
               {
                 q: 'Do you offer wheelchair accessible vehicles?',
@@ -216,7 +217,7 @@ export function ContactPage() {
               Book Online
             </button>
             <a
-              href="tel:+17034521665"
+              href={`tel:${PHONE_E164}`}
               className="bg-teal-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-teal-800 transition-all flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />

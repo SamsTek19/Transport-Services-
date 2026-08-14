@@ -1,6 +1,6 @@
 import { Phone, Shield, Clock, Heart, ChevronRight, Star, Users, Award } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
-import { ServiceAreas } from '../components/ServiceAreas';
+import { PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
 
 const services = [
   {
@@ -67,7 +67,7 @@ export function HomePage() {
                 <ChevronRight className="w-5 h-5" />
               </button>
               <a
-                href="tel:+17039805916"
+                href={`tel:${PHONE_E164}`}
                 className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2"
               >
                 <Phone className="w-5 h-5" />
@@ -196,11 +196,11 @@ export function HomePage() {
               Book Your Ride
             </button>
             <a
-              href="tel:+17039805916"
+              href={`tel:${PHONE_E164}`}
               className="bg-teal-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-teal-800 transition-all flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />
-              (703) 980-5916
+              {PHONE_DISPLAY}
             </a>
           </div>
         </div>

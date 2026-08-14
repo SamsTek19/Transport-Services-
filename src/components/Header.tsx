@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Menu, X, Phone, Car } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
+import { LOGO_PATH, PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
 
 const navLinks: { label: string; page: Page }[] = [
   { label: 'Home', page: 'home' },
@@ -27,7 +28,7 @@ export function Header() {
             className="flex items-center gap-3 group"
           >
             <img
-              src="https://res.cloudinary.com/dzydzt8x8/image/upload/v1785950925/download-removebg-preview_jahxms.png"
+              src={LOGO_PATH}
               alt="Angels Of Hope logo"
               className="w-12 h-12 rounded-xl shadow-lg object-contain"
             />
@@ -55,11 +56,11 @@ export function Header() {
 
           <div className="hidden md:flex items-center gap-4">
             <a
-              href="tel:+17034521665"
+              href={`tel:${PHONE_E164}`}
               className="flex items-center gap-2 text-gray-600 hover:text-teal-600 transition-colors"
             >
               <Phone className="w-5 h-5" />
-              <span className="font-medium">(703) 452-1665</span>
+              <span className="font-medium">{PHONE_DISPLAY}</span>
             </a>
             <button
               onClick={() => handleNav('book')}
@@ -99,11 +100,11 @@ export function Header() {
               ))}
               <div className="flex flex-col gap-3 mt-4 px-4">
                 <a
-                  href="tel:+17034521665"
+                  href={`tel:${PHONE_E164}`}
                   className="flex items-center justify-center gap-2 py-3 text-teal-600 font-medium bg-teal-50 rounded-lg"
                 >
                   <Phone className="w-5 h-5" />
-                  (703) 452-1665
+                  {PHONE_DISPLAY}
                 </a>
                 <button
                   onClick={() => handleNav('book')}

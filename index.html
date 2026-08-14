@@ -12,7 +12,11 @@
 </script>
 <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="5fe591b3-d6b5-47bc-a763-3e8dc564f60b" type="text/javascript" async></script>  
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dzydzt8x8/image/upload/v1785950925/download-removebg-preview_jahxms.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icon-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0f766e" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Angels Of Hope Transportation | NEMT, Wheelchair & Medical Transport in Northern Virginia</title>
     <meta name="description" content="Angels Of Hope Transportation provides reliable NEMT, wheelchair transportation, dialysis transportation, and private medical transport across Manassas, Manassas Park, Woodbridge, Fairfax, Alexandria, Arlington, and Prince William County." />
@@ -23,41 +27,93 @@
     <meta property="og:title" content="Angels Of Hope Transportation | NEMT & Medical Transport in Northern Virginia" />
     <meta property="og:description" content="Reliable non-emergency medical transportation, wheelchair transportation, and dialysis transportation for Northern Virginia residents." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://angelsofhopetransportation.com/" />
+    <meta property="og:site_name" content="Angels Of Hope Transportation" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://angelsofhopetransportation.com/logo.png" />
+    <meta property="og:image:alt" content="Angels Of Hope Transportation logo" />
+    <meta property="og:image:width" content="500" />
+    <meta property="og:image:height" content="273" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Angels Of Hope Transportation" />
     <meta name="twitter:description" content="Reliable NEMT and wheelchair transportation across Northern Virginia." />
+    <meta name="twitter:image" content="https://angelsofhopetransportation.com/icon-512.png" />
     <link rel="canonical" href="https://angelsofhopetransportation.com/" />
-    <meta name="google-site-verification" content="" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "MedicalOrganization",
-        "name": "Angels Of Hope Transportation",
-        "url": "https://angelsofhopetransportation.com",
-        "telephone": "+1-703-452-1665",
-        "email": "info@angelsofhopetransportation.com",
-        "address": {
-          "@type": "PostalAddress",
-          "addressRegion": "VA",
-          "addressCountry": "US"
-        },
-        "areaServed": [
-          "Manassas",
-          "Manassas Park",
-          "Woodbridge",
-          "Fairfax",
-          "Alexandria",
-          "Arlington",
-          "Prince William County",
-          "Northern Virginia"
-        ],
-        "description": "Non-emergency medical transportation, wheelchair transportation, and dialysis transportation services in Northern Virginia.",
-        "serviceType": [
-          "NEMT",
-          "Wheelchair Transportation",
-          "Medical Transportation",
-          "Private Medical Transportation",
-          "Dialysis Transportation"
+        "@graph": [
+          {
+            "@type": "MedicalOrganization",
+            "@id": "https://angelsofhopetransportation.com/#organization",
+            "name": "Angels Of Hope Transportation",
+            "url": "https://angelsofhopetransportation.com",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://angelsofhopetransportation.com/icon-512.png",
+              "width": 512,
+              "height": 512,
+              "caption": "Angels Of Hope Transportation logo"
+            },
+            "image": "https://angelsofhopetransportation.com/logo.png",
+            "telephone": "+1-703-452-1665",
+            "email": "info@angelsofhopetransportation.com",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+1-703-452-1665",
+              "email": "info@angelsofhopetransportation.com",
+              "contactType": "customer service",
+              "areaServed": "US-VA",
+              "availableLanguage": "English"
+            },
+            "openingHoursSpecification": [
+              {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+                "opens": "06:00",
+                "closes": "21:00"
+              },
+              {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": "Friday",
+                "opens": "06:00",
+                "closes": "17:00"
+              }
+            ],
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Northern Virginia",
+              "addressRegion": "VA",
+              "addressCountry": "US"
+            },
+            "areaServed": [
+              "Manassas",
+              "Manassas Park",
+              "Woodbridge",
+              "Fairfax",
+              "Alexandria",
+              "Arlington",
+              "Prince William County",
+              "Northern Virginia"
+            ],
+            "description": "Non-emergency medical transportation, wheelchair transportation, and dialysis transportation services in Northern Virginia.",
+            "serviceType": [
+              "NEMT",
+              "Wheelchair Transportation",
+              "Medical Transportation",
+              "Private Medical Transportation",
+              "Dialysis Transportation"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://angelsofhopetransportation.com/#website",
+            "name": "Angels Of Hope Transportation",
+            "url": "https://angelsofhopetransportation.com",
+            "publisher": {
+              "@id": "https://angelsofhopetransportation.com/#organization"
+            }
+          }
         ]
       }
     </script>

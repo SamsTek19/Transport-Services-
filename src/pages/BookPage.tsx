@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Phone, Calendar, MapPin, Users, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Booking } from '../types';
+import { PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
 
 export function BookPage() {
   const [formData, setFormData] = useState<Booking>({
@@ -107,7 +108,7 @@ export function BookPage() {
               <div>
                 <h3 className="font-semibold text-red-800">Submission Failed</h3>
                 <p className="text-red-700 text-sm mt-1">
-                  Something went wrong. Please try again or call us directly at (703) 980-5916.
+                  Something went wrong. Please try again or call us directly at {PHONE_DISPLAY}.
                 </p>
               </div>
             </div>
@@ -335,11 +336,11 @@ export function BookPage() {
           <div className="mt-8 text-center">
             <p className="text-gray-600 mb-4">Prefer to speak with us directly?</p>
             <a
-              href="tel:+17039805916"
+              href={`tel:${PHONE_E164}`}
               className="inline-flex items-center gap-2 bg-white text-teal-600 px-6 py-3 rounded-xl font-semibold border-2 border-teal-200 hover:border-teal-500 hover:bg-teal-50 transition-all"
             >
               <Phone className="w-5 h-5" />
-              Call  (703) 452-1665
+              Call {PHONE_DISPLAY}
             </a>
           </div>
         </div>
