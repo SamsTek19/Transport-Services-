@@ -7,7 +7,7 @@ export const PHONE_E164 = '+17034521665';
 export const PHONE_DISPLAY = '(703) 452-1665';
 export const PHONE_DISPLAY_INTL = '+1 (703) 452-1665';
 
-export const EMAIL = 'info@angelsofhopetransportation.com';
+export const EMAIL = 'angelsofhopetransportation@gmail.com';
 
 export const LOGO_PATH = '/logo.png';
 export const LOGO_URL = `${SITE_URL}${LOGO_PATH}`;

@@ -23,7 +23,7 @@ const pageMeta: Record<Page, { title: string; description: string; indexable: bo
   contact: {
     title: 'Contact Angels Of Hope Transportation | Book a Ride',
     description:
-      'Contact Angels Of Hope Transportation for NEMT, wheelchair transportation, and medical transport in Northern Virginia. Call (703) 452-1665 or email info@angelsofhopetransportation.com.',
+      'Contact Angels Of Hope Transportation for NEMT, wheelchair transportation, and medical transport in Northern Virginia. Call (703) 452-1665 or email angelsofhopetransportation@gmail.com.',
     indexable: true,
   },
   book: {
