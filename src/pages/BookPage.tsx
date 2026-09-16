@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Phone, Calendar, MapPin, Users, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Phone, Calendar, MapPin, Users, CheckCircle, AlertCircle, Loader2, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Booking } from '../types';
 import { PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
+import { calculateFare } from '../lib/fare';
 
 export function BookPage() {
   const [formData, setFormData] = useState<Booking>({
@@ -16,6 +17,9 @@ export function BookPage() {
     passengers: 1,
     wheelchair_accessible: false,
     round_trip: false,
+    distance_miles: 0,
+    waiting_minutes: 0,
+    payment_method: 'card',
     special_requests: '',
   });
 
@@ -29,7 +33,7 @@ export function BookPage() {
     if (type === 'checkbox') {
       newValue = (e.target as HTMLInputElement).checked;
     } else if (type === 'number') {
-      newValue = parseInt(value) || 1;
+      newValue = name === 'distance_miles' ? parseFloat(value) || 0 : parseInt(value) || 0;
     }
 
     setFormData((prev) => ({
@@ -44,7 +48,27 @@ export function BookPage() {
     setSubmitStatus('idle');
 
     try {
-      const { error } = await supabase.from('bookings').insert([formData]);
+      const fare = calculateFare({
+        distanceMiles: formData.distance_miles,
+        waitingMinutes: formData.waiting_minutes,
+        roundTrip: formData.round_trip,
+      });
+      if (formData.payment_method === 'card') {
+        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+          body: { booking: { ...formData, fare_amount: fare.total } },
+        });
+
+        if (error || !data?.url) {
+          throw new Error(error?.message || 'Unable to start secure card payment.');
+        }
+
+        window.location.assign(data.url);
+        return;
+      }
+
+      const { error } = await supabase.from('bookings').insert([
+        { ...formData, fare_amount: fare.total, payment_status: 'pending' },
+      ]);
 
       if (error) throw error;
 
@@ -60,6 +84,9 @@ export function BookPage() {
         passengers: 1,
         wheelchair_accessible: false,
         round_trip: false,
+        distance_miles: 0,
+        waiting_minutes: 0,
+        payment_method: 'card',
         special_requests: '',
       });
     } catch {
@@ -70,6 +97,11 @@ export function BookPage() {
   };
 
   const today = new Date().toISOString().split('T')[0];
+  const fare = calculateFare({
+    distanceMiles: formData.distance_miles,
+    waitingMinutes: formData.waiting_minutes,
+    roundTrip: formData.round_trip,
+  });
 
   return (
     <div className="pt-20">
@@ -165,6 +197,37 @@ export function BookPage() {
                       placeholder="your.email@example.com"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Trip Distance (miles) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="distance_miles"
+                      value={formData.distance_miles || ''}
+                      onChange={handleChange}
+                      min="0.1"
+                      step="0.1"
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                      placeholder="e.g. 8.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Waiting Time (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      name="waiting_minutes"
+                      value={formData.waiting_minutes || ''}
+                      onChange={handleChange}
+                      min="0"
+                      step="1"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -246,6 +309,39 @@ export function BookPage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fare and payment */}
+              <div className="rounded-2xl border border-teal-100 bg-teal-50/60 p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-teal-600" />
+                  Fare and Payment
+                </h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                    <select
+                      name="payment_method"
+                      value={formData.payment_method}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white"
+                    >
+                      <option value="card">Card</option>
+                      <option value="cash">Cash</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {formData.payment_method === 'card'
+                        ? 'You will continue to secure Stripe Checkout after submitting.'
+                        : 'Your booking will be sent immediately. Pay the driver in cash.'}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border border-teal-100">
+                    <div className="flex justify-between text-sm text-gray-600"><span>Base fare</span><span>${fare.baseFare.toFixed(2)}</span></div>
+                    <div className="flex justify-between text-sm text-gray-600 mt-2"><span>Additional mileage</span><span>${fare.mileageCharge.toFixed(2)}</span></div>
+                    <div className="flex justify-between text-sm text-gray-600 mt-2"><span>Waiting time</span><span>${fare.waitingCharge.toFixed(2)}</span></div>
+                    <div className="flex justify-between font-bold text-gray-900 text-lg border-t border-gray-100 mt-3 pt-3"><span>Estimated total</span><span>${fare.total.toFixed(2)}</span></div>
                   </div>
                 </div>
               </div>

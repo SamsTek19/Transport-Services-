@@ -10,6 +10,11 @@ export interface Booking {
   passengers: number;
   wheelchair_accessible: boolean;
   round_trip: boolean;
+  distance_miles: number;
+  waiting_minutes: number;
+  fare_amount?: number;
+  payment_method: 'card' | 'cash';
+  payment_status?: 'pending' | 'paid' | 'refunded' | 'failed';
   special_requests?: string;
   status?: string;
   created_at?: string;

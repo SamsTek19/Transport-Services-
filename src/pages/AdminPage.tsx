@@ -13,6 +13,8 @@ import {
   Mail,
   UserPlus,
   CheckCircle,
+  CreditCard,
+  Banknote,
 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -22,6 +24,7 @@ import { useNavigation } from '../hooks/useNavigation';
 import type { Booking } from '../types';
 
 const STATUS_OPTIONS = ['pending', 'confirmed', 'completed', 'cancelled'] as const;
+const PAYMENT_STATUS_OPTIONS = ['pending', 'paid', 'refunded', 'failed'] as const;
 
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-800',
@@ -400,6 +403,7 @@ function AdminDashboard({ session }: { session: Session }) {
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [paymentFilter, setPaymentFilter] = useState<string>('all');
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -438,19 +442,42 @@ function AdminDashboard({ session }: { session: Session }) {
     setUpdatingId(null);
   };
 
+  const handlePaymentStatusChange = async (id: string, payment_status: Booking['payment_status']) => {
+    setUpdatingId(id);
+
+    const { error: updateError } = await supabase.from('bookings').update({ payment_status }).eq('id', id);
+
+    if (updateError) {
+      setError('Failed to update payment status.');
+    } else {
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, payment_status } : b)));
+    }
+
+    setUpdatingId(null);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('home');
   };
 
-  const filteredBookings =
-    filter === 'all' ? bookings : bookings.filter((b) => b.status === filter);
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesStatus = filter === 'all' || booking.status === filter;
+    const matchesPayment =
+      paymentFilter === 'all' ||
+      (paymentFilter === 'cash' && booking.payment_method === 'cash') ||
+      (paymentFilter === 'card-paid' && booking.payment_method === 'card' && booking.payment_status === 'paid') ||
+      (paymentFilter === 'card-pending' && booking.payment_method === 'card' && booking.payment_status !== 'paid');
+    return matchesStatus && matchesPayment;
+  });
 
   const stats = {
     total: bookings.length,
     pending: bookings.filter((b) => b.status === 'pending').length,
     confirmed: bookings.filter((b) => b.status === 'confirmed').length,
     completed: bookings.filter((b) => b.status === 'completed').length,
+    cardPaid: bookings.filter((b) => b.payment_method === 'card' && b.payment_status === 'paid').length,
+    cashDue: bookings.filter((b) => b.payment_method === 'cash').length,
   };
 
   return (
@@ -504,6 +531,43 @@ function AdminDashboard({ session }: { session: Session }) {
           ))}
         </div>
 
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="w-5 h-5 text-teal-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Payment Overview</h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => setPaymentFilter('card-paid')}
+              className="text-left bg-green-50 border border-green-200 rounded-2xl p-5 hover:bg-green-100 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-800">Card payments successful</p>
+                  <p className="text-3xl font-bold text-green-900 mt-1">{stats.cardPaid}</p>
+                  <p className="text-xs text-green-700 mt-1">Paid through Stripe</p>
+                </div>
+                <CreditCard className="w-8 h-8 text-green-600" />
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentFilter('cash')}
+              className="text-left bg-amber-50 border border-amber-200 rounded-2xl p-5 hover:bg-amber-100 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-amber-800">Cash payments due</p>
+                  <p className="text-3xl font-bold text-amber-900 mt-1">{stats.cashDue}</p>
+                  <p className="text-xs text-amber-700 mt-1">Collect from the rider</p>
+                </div>
+                <Banknote className="w-8 h-8 text-amber-600" />
+              </div>
+            </button>
+          </div>
+        </section>
+
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-lg font-semibold text-gray-900">Ride Bookings</h2>
@@ -519,6 +583,16 @@ function AdminDashboard({ session }: { session: Session }) {
                     {s.charAt(0).toUpperCase() + s.slice(1)}
                   </option>
                 ))}
+              </select>
+              <select
+                value={paymentFilter}
+                onChange={(e) => setPaymentFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="all">All payments</option>
+                <option value="card-paid">Card paid</option>
+                <option value="card-pending">Card awaiting payment</option>
+                <option value="cash">Cash due</option>
               </select>
               <button
                 onClick={fetchBookings}
@@ -558,6 +632,7 @@ function AdminDashboard({ session }: { session: Session }) {
                     <th className="px-6 py-3 font-medium">Customer</th>
                     <th className="px-6 py-3 font-medium">Trip</th>
                     <th className="px-6 py-3 font-medium">Pickup</th>
+                    <th className="px-6 py-3 font-medium">Fare</th>
                     <th className="px-6 py-3 font-medium">Options</th>
                     <th className="px-6 py-3 font-medium">Status</th>
                     <th className="px-6 py-3 font-medium">Submitted</th>
@@ -587,6 +662,22 @@ function AdminDashboard({ session }: { session: Session }) {
                         <div className="text-gray-500 text-xs mt-0.5">
                           {booking.passengers} passenger{booking.passengers !== 1 ? 's' : ''}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">${(booking.fare_amount ?? 0).toFixed(2)}</div>
+                        <div className="text-gray-500 text-xs capitalize">{booking.payment_method}</div>
+                        <select
+                          value={booking.payment_status ?? 'pending'}
+                          onChange={(e) => booking.id && handlePaymentStatusChange(booking.id, e.target.value as Booking['payment_status'])}
+                          disabled={updatingId === booking.id}
+                          className="text-xs text-amber-700 bg-amber-50 border-0 rounded px-1 py-0.5 mt-1 capitalize"
+                        >
+                          {PAYMENT_STATUS_OPTIONS.map((paymentStatus) => (
+                            <option key={paymentStatus} value={paymentStatus}>
+                              {paymentStatus}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
