@@ -6,6 +6,7 @@ import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { BookPage } from './pages/BookPage';
 import { AdminPage } from './pages/AdminPage';
+import { TermsPage } from './pages/TermsPage';
 import { useNavigation } from './hooks/useNavigation';
 import { updatePageMetadata } from './seo';
 import { useEffect } from 'react';
@@ -33,6 +34,8 @@ function App() {
         return <ContactPage />;
       case 'book':
         return <BookPage />;
+      case 'terms':
+        return <TermsPage />;
       default:
         return <HomePage />;
     }

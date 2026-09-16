@@ -55,6 +55,7 @@ export function Footer() {
                 { label: 'About Us', page: 'about' as Page },
                 { label: 'Contact', page: 'contact' as Page },
                 { label: 'Book a Ride', page: 'book' as Page },
+                { label: 'Terms of Service', page: 'terms' as Page },
               ].map((link) => (
                 <li key={link.page}>
                   <button
