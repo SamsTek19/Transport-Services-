@@ -32,6 +32,16 @@ const pageMeta: Record<Page, { title: string; description: string; indexable: bo
       'Book reliable medical transportation, wheelchair accessible rides, and dialysis transportation in Northern Virginia.',
     indexable: true,
   },
+  confirmation: {
+    title: 'Booking Request Received | Angels Of Hope Transportation',
+    description: 'Your Angels Of Hope Transportation booking request has been received.',
+    indexable: false,
+  },
+  payment: {
+    title: 'Make a Payment | Angels Of Hope Transportation',
+    description: 'Securely pay for an Angels Of Hope Transportation booking.',
+    indexable: false,
+  },
   terms: {
     title: 'Terms of Service | Angels Of Hope Transportation',
     description: 'Rates, payment terms, and service expectations for Angels Of Hope Transportation rides.',

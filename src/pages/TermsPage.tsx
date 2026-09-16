@@ -62,7 +62,7 @@ export function TermsPage() {
             <ul className="space-y-4 text-gray-700">
               <li>Fare estimates are based on the mileage and waiting time entered when you request a ride. The final charge may be adjusted if the actual trip details differ.</li>
               <li>Cash bookings are submitted immediately and payment is due to the driver at the time of service.</li>
-              <li>Card bookings continue to secure Stripe Checkout after the booking form is submitted. A card booking is considered paid only after Stripe confirms the payment.</li>
+              <li>Card booking requests are reviewed first. After review, use the secure payment page to pay through Stripe. A booking is considered paid only after Stripe confirms the payment.</li>
               <li>Stripe card payments are processed in U.S. dollars. Payment receipts are sent to the email address configured for Angels Of Hope Transportation.</li>
             </ul>
           </section>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Phone, Car } from 'lucide-react';
+import { Menu, X, Phone } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
 import { LOGO_PATH, PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
 
@@ -8,6 +8,7 @@ const navLinks: { label: string; page: Page }[] = [
   { label: 'Services', page: 'services' },
   { label: 'About', page: 'about' },
   { label: 'Contact', page: 'contact' },
+  { label: 'Payments', page: 'payment' },
 ];
 
 export function Header() {

@@ -7,6 +7,8 @@ import { ContactPage } from './pages/ContactPage';
 import { BookPage } from './pages/BookPage';
 import { AdminPage } from './pages/AdminPage';
 import { TermsPage } from './pages/TermsPage';
+import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
+import { PaymentPage } from './pages/PaymentPage';
 import { useNavigation } from './hooks/useNavigation';
 import { updatePageMetadata } from './seo';
 import { useEffect } from 'react';
@@ -34,6 +36,10 @@ function App() {
         return <ContactPage />;
       case 'book':
         return <BookPage />;
+      case 'confirmation':
+        return <BookingConfirmationPage />;
+      case 'payment':
+        return <PaymentPage />;
       case 'terms':
         return <TermsPage />;
       default:

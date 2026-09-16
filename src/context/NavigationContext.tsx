@@ -1,14 +1,16 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 
-export type Page = 'home' | 'services' | 'about' | 'contact' | 'book' | 'terms' | 'admin';
+export type Page = 'home' | 'services' | 'about' | 'contact' | 'book' | 'confirmation' | 'payment' | 'terms' | 'admin';
 
-const VALID_PAGES: Page[] = ['home', 'services', 'about', 'contact', 'book', 'terms', 'admin'];
+const VALID_PAGES: Page[] = ['home', 'services', 'about', 'contact', 'book', 'confirmation', 'payment', 'terms', 'admin'];
 const PAGE_PATHS: Record<Page, string> = {
   home: '/',
   services: '/services',
   about: '/about',
   contact: '/contact',
   book: '/book',
+  confirmation: '/booking-confirmation',
+  payment: '/payment',
   terms: '/terms',
   admin: '/admin',
 };

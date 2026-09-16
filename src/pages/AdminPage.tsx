@@ -15,6 +15,7 @@ import {
   CheckCircle,
   CreditCard,
   Banknote,
+  Trash2,
 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -404,6 +405,8 @@ function AdminDashboard({ session }: { session: Session }) {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [availabilityDate, setAvailabilityDate] = useState('');
+  const [availabilityTime, setAvailabilityTime] = useState('');
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -436,7 +439,7 @@ function AdminDashboard({ session }: { session: Session }) {
     if (updateError) {
       setError('Failed to update booking status.');
     } else {
-      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: status as Booking['status'] } : b)));
     }
 
     setUpdatingId(null);
@@ -451,6 +454,21 @@ function AdminDashboard({ session }: { session: Session }) {
       setError('Failed to update payment status.');
     } else {
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, payment_status } : b)));
+    }
+
+    setUpdatingId(null);
+  };
+
+  const handleDeleteBooking = async (booking: Booking) => {
+    if (!booking.id || !window.confirm('Are you sure you want to delete this booking? This action cannot be undone.')) return;
+
+    setUpdatingId(booking.id);
+    const { error: deleteError } = await supabase.from('bookings').delete().eq('id', booking.id);
+
+    if (deleteError) {
+      setError('Failed to delete booking. Please try again.');
+    } else {
+      setBookings((prev) => prev.filter((currentBooking) => currentBooking.id !== booking.id));
     }
 
     setUpdatingId(null);
@@ -479,6 +497,13 @@ function AdminDashboard({ session }: { session: Session }) {
     cardPaid: bookings.filter((b) => b.payment_method === 'card' && b.payment_status === 'paid').length,
     cashDue: bookings.filter((b) => b.payment_method === 'cash').length,
   };
+
+  const matchingBooking = bookings.find(
+    (booking) =>
+      booking.status !== 'cancelled' &&
+      booking.pickup_date === availabilityDate &&
+      booking.pickup_time.slice(0, 5) === availabilityTime
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -530,6 +555,52 @@ function AdminDashboard({ session }: { session: Session }) {
             </div>
           ))}
         </div>
+
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-5 h-5 text-teal-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Check Booking Availability</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-5">
+            Check the admin booking records before accepting a new request. Cancelled bookings do not block a time.
+          </p>
+          <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+            <label className="text-sm font-medium text-gray-700">
+              Date
+              <input
+                type="date"
+                value={availabilityDate}
+                onChange={(event) => setAvailabilityDate(event.target.value)}
+                className="block w-full mt-2 px-3 py-2.5 border border-gray-200 rounded-lg font-normal"
+              />
+            </label>
+            <label className="text-sm font-medium text-gray-700">
+              Time
+              <input
+                type="time"
+                value={availabilityTime}
+                onChange={(event) => setAvailabilityTime(event.target.value)}
+                className="block w-full mt-2 px-3 py-2.5 border border-gray-200 rounded-lg font-normal"
+              />
+            </label>
+            <div
+              className={`px-4 py-2.5 rounded-lg text-center font-semibold ${
+                !availabilityDate || !availabilityTime
+                  ? 'bg-gray-100 text-gray-500'
+                  : matchingBooking
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-green-100 text-green-800'
+              }`}
+            >
+              {!availabilityDate || !availabilityTime ? 'Select date and time' : matchingBooking ? 'Booked' : 'Available'}
+            </div>
+          </div>
+          {matchingBooking && (
+            <p className="text-sm text-red-700 mt-4">
+              This time is booked by {matchingBooking.name} ({matchingBooking.booking_reference ?? 'no reference'}).
+            </p>
+          )}
+        </section>
 
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -630,12 +701,14 @@ function AdminDashboard({ session }: { session: Session }) {
                 <thead>
                   <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase tracking-wider">
                     <th className="px-6 py-3 font-medium">Customer</th>
+                    <th className="px-6 py-3 font-medium">Reference</th>
                     <th className="px-6 py-3 font-medium">Trip</th>
                     <th className="px-6 py-3 font-medium">Pickup</th>
                     <th className="px-6 py-3 font-medium">Fare</th>
                     <th className="px-6 py-3 font-medium">Options</th>
                     <th className="px-6 py-3 font-medium">Status</th>
                     <th className="px-6 py-3 font-medium">Submitted</th>
+                    <th className="px-6 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -645,6 +718,9 @@ function AdminDashboard({ session }: { session: Session }) {
                         <div className="font-medium text-gray-900">{booking.name}</div>
                         <div className="text-gray-500 text-xs mt-0.5">{booking.phone}</div>
                         <div className="text-gray-500 text-xs">{booking.email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="font-mono text-xs text-gray-700">{booking.booking_reference ?? booking.id?.slice(0, 8) ?? '—'}</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-gray-700 max-w-[180px]">
@@ -716,6 +792,17 @@ function AdminDashboard({ session }: { session: Session }) {
                       </td>
                       <td className="px-6 py-4 text-gray-500 text-xs whitespace-nowrap">
                         {booking.created_at ? formatDateTime(booking.created_at) : '—'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBooking(booking)}
+                          disabled={updatingId === booking.id}
+                          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete Booking
+                        </button>
                       </td>
                     </tr>
                   ))}

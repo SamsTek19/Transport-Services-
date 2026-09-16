@@ -1,4 +1,4 @@
-import { Phone, Mail, Clock, MapPin, Car, Facebook, Twitter, Instagram } from 'lucide-react';
+import { Phone, Mail, Clock, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
 import { useNavigation, Page } from '../hooks/useNavigation';
 import { EMAIL, LOGO_PATH, PHONE_DISPLAY_INTL, PHONE_E164 } from '../constants/site';
 

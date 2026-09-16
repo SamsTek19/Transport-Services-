@@ -2,7 +2,15 @@ import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
 export async function checkIsAdmin(userId: string): Promise<boolean> {
-  return Boolean(userId);
+  if (!userId) return false;
+
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  return !error && Boolean(data);
 }
 
 async function readFunctionError(error: unknown, data: unknown): Promise<string> {

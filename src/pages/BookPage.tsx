@@ -1,11 +1,17 @@
-import { useState } from 'react';
-import { Phone, Calendar, MapPin, Users, CheckCircle, AlertCircle, Loader2, DollarSign } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Phone, Calendar, MapPin, Users, AlertCircle, Loader2, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Booking } from '../types';
 import { PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
 import { calculateFare } from '../lib/fare';
+import { useNavigation } from '../hooks/useNavigation';
+
+function normalizePickupTime(value: string) {
+  return value.trim().slice(0, 5);
+}
 
 export function BookPage() {
+  const { navigate } = useNavigation();
   const [formData, setFormData] = useState<Booking>({
     name: '',
     email: '',
@@ -25,6 +31,43 @@ export function BookPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitError, setSubmitError] = useState('');
+  const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState('');
+
+  useEffect(() => {
+    setOccupiedTimes([]);
+    setAvailabilityError('');
+
+    if (!formData.pickup_date) {
+      return;
+    }
+
+    let active = true;
+    setIsCheckingAvailability(true);
+    supabase
+      .rpc('get_booked_slots', { requested_date: formData.pickup_date })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          setAvailabilityError('Availability could not be checked. The server will still verify this time when you submit.');
+        } else {
+          const slots = Array.isArray(data) ? data : [];
+          setOccupiedTimes(
+            slots
+              .map((slot: { pickup_time?: string }) => slot.pickup_time)
+              .filter((pickupTime): pickupTime is string => Boolean(pickupTime))
+              .map(normalizePickupTime)
+          );
+        }
+        setIsCheckingAvailability(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [formData.pickup_date]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -44,53 +87,34 @@ export function BookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (occupiedTimes.includes(normalizePickupTime(formData.pickup_time))) {
+      setSubmitStatus('error');
+      setSubmitError('This date and time has already been booked. Please select another time.');
+      return;
+    }
     setIsSubmitting(true);
     setSubmitStatus('idle');
+    setSubmitError('');
 
     try {
-      const fare = calculateFare({
-        distanceMiles: formData.distance_miles,
-        waitingMinutes: formData.waiting_minutes,
-        roundTrip: formData.round_trip,
+      const { data, error } = await supabase.rpc('create_booking', {
+        booking_data: formData,
       });
-      if (formData.payment_method === 'card') {
-        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-          body: { booking: { ...formData, fare_amount: fare.total } },
-        });
-
-        if (error || !data?.url) {
-          throw new Error(error?.message || 'Unable to start secure card payment.');
-        }
-
-        window.location.assign(data.url);
-        return;
-      }
-
-      const { error } = await supabase.from('bookings').insert([
-        { ...formData, fare_amount: fare.total, payment_status: 'pending' },
-      ]);
 
       if (error) throw error;
-
-      setSubmitStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        pickup_address: '',
-        dropoff_address: '',
-        pickup_date: '',
-        pickup_time: '',
-        passengers: 1,
-        wheelchair_accessible: false,
-        round_trip: false,
-        distance_miles: 0,
-        waiting_minutes: 0,
-        payment_method: 'card',
-        special_requests: '',
-      });
-    } catch {
+      const bookingResult = data as { booking_reference?: string };
+      if (bookingResult?.booking_reference) {
+        sessionStorage.setItem('aoh_booking_reference', bookingResult.booking_reference);
+      }
+      navigate('confirmation');
+    } catch (error) {
       setSubmitStatus('error');
+      const message = error && typeof error === 'object' && 'message' in error ? String((error as { message: unknown }).message) : '';
+      setSubmitError(
+        message.includes('already been booked')
+          ? 'This date and time has already been booked. Please select another time.'
+          : message || 'The booking could not be submitted. Please review your details and try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -102,6 +126,7 @@ export function BookPage() {
     waitingMinutes: formData.waiting_minutes,
     roundTrip: formData.round_trip,
   });
+  const timeUnavailable = occupiedTimes.includes(normalizePickupTime(formData.pickup_time));
 
   return (
     <div className="pt-20">
@@ -122,25 +147,13 @@ export function BookPage() {
       {/* Form Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {submitStatus === 'success' && (
-            <div className="mb-8 bg-green-50 border border-green-200 rounded-2xl p-6 flex items-start gap-4">
-              <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-green-800">Booking Submitted Successfully!</h3>
-                <p className="text-green-700 text-sm mt-1">
-                  Thank you for choosing Angels Of Hope Transportation. We'll contact you shortly to confirm your ride details.
-                </p>
-              </div>
-            </div>
-          )}
-
           {submitStatus === 'error' && (
             <div className="mb-8 bg-red-50 border border-red-200 rounded-2xl p-6 flex items-start gap-4">
               <AlertCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-red-800">Submission Failed</h3>
                 <p className="text-red-700 text-sm mt-1">
-                  Something went wrong. Please try again or call us directly at {PHONE_DISPLAY}.
+                  {submitError || `Something went wrong. Please try again or call us directly at ${PHONE_DISPLAY}.`}
                 </p>
               </div>
             </div>
@@ -277,6 +290,11 @@ export function BookPage() {
                       min={today}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                     />
+                    {isCheckingAvailability && <p className="text-xs text-gray-500 mt-2">Checking booked times for this date...</p>}
+                    {!isCheckingAvailability && !availabilityError && formData.pickup_date && occupiedTimes.length === 0 && (
+                      <p className="text-xs text-green-700 mt-2">No booked times found for this date.</p>
+                    )}
+                    {availabilityError && <p className="text-xs text-amber-700 mt-2">{availabilityError}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -288,8 +306,16 @@ export function BookPage() {
                       value={formData.pickup_time}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${
+                        timeUnavailable ? 'border-red-400 bg-red-50' : 'border-gray-200'
+                      }`}
                     />
+                    {formData.pickup_date && occupiedTimes.length > 0 && (
+                      <p className="text-xs text-amber-700 mt-2">Unavailable times for this date: {occupiedTimes.join(', ')}</p>
+                    )}
+                    {formData.pickup_date && formData.pickup_time && timeUnavailable && (
+                      <p className="text-sm text-red-700 mt-2">This date and time has already been booked. Please select another time.</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -331,8 +357,8 @@ export function BookPage() {
                     </select>
                     <p className="text-xs text-gray-500 mt-2">
                       {formData.payment_method === 'card'
-                        ? 'You will continue to secure Stripe Checkout after submitting.'
-                        : 'Your booking will be sent immediately. Pay the driver in cash.'}
+                        ? 'Your request will be saved as pending. Our team will send you to the payment page after review.'
+                        : 'Your booking request will be saved as pending. Pay the driver in cash after confirmation.'}
                     </p>
                   </div>
                   <div className="bg-white rounded-xl p-4 border border-teal-100">
@@ -407,7 +433,7 @@ export function BookPage() {
               <div className="pt-4">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || timeUnavailable}
                   className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 hover:from-teal-700 hover:to-teal-800 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (

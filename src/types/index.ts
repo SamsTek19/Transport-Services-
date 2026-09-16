@@ -16,7 +16,8 @@ export interface Booking {
   payment_method: 'card' | 'cash';
   payment_status?: 'pending' | 'paid' | 'refunded' | 'failed';
   special_requests?: string;
-  status?: string;
+  status?: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  booking_reference?: string;
   created_at?: string;
 }
 
