@@ -185,30 +185,28 @@ export function BookPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address <span className="text-red-500">*</span>
+                      Email Address <span className="text-gray-400">(optional)</span>
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      required
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                       placeholder="your.email@example.com"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Trip Distance (miles) <span className="text-red-500">*</span>
+                      Trip Distance (miles) <span className="text-gray-400">(optional)</span>
                     </label>
                     <input
                       type="number"
                       name="distance_miles"
                       value={formData.distance_miles || ''}
                       onChange={handleChange}
-                      min="0.1"
+                      min="0"
                       step="0.1"
-                      required
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                       placeholder="e.g. 8.5"
                     />

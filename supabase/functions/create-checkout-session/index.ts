@@ -29,24 +29,28 @@ Deno.serve(async (req) => {
     if (bookingError || !createdBooking) return json({ error: bookingError?.message || 'Unable to create booking.' }, 400);
 
     const origin = req.headers.get('origin') || Deno.env.get('SITE_URL') || 'http://localhost:5173';
+    const checkoutParams = new URLSearchParams({
+      mode: 'payment',
+      'line_items[0][price_data][currency]': 'usd',
+      'line_items[0][price_data][product_data][name]': 'Angels Of Hope Transportation ride',
+      'line_items[0][price_data][unit_amount]': String(Math.round(fare * 100)),
+      'line_items[0][quantity]': '1',
+      receipt_email: 'angelsofhopetransportation@gmail.com',
+      'metadata[booking_id]': createdBooking.id,
+      success_url: `${origin}/?payment=success`,
+      cancel_url: `${origin}/?payment=cancelled`,
+    });
+    if (typeof booking.email === 'string' && booking.email.trim()) {
+      checkoutParams.set('customer_email', booking.email.trim());
+    }
+
     const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${stripeSecretKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        mode: 'payment',
-        'line_items[0][price_data][currency]': 'usd',
-        'line_items[0][price_data][product_data][name]': 'Angels Of Hope Transportation ride',
-        'line_items[0][price_data][unit_amount]': String(Math.round(fare * 100)),
-        'line_items[0][quantity]': '1',
-        customer_email: booking.email,
-        receipt_email: 'angelsofhopetransportation@gmail.com',
-        'metadata[booking_id]': createdBooking.id,
-        success_url: `${origin}/?payment=success`,
-        cancel_url: `${origin}/?payment=cancelled`,
-      }),
+      body: checkoutParams,
     });
     const session = await stripeResponse.json();
     if (!stripeResponse.ok || !session.url) {
