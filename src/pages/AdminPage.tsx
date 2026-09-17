@@ -432,12 +432,37 @@ function AdminDashboard({ session }: { session: Session }) {
   }, [fetchBookings]);
 
   const handleStatusChange = async (id: string, status: string) => {
+    const booking = bookings.find((currentBooking) => currentBooking.id === id);
+    const conflictingBooking =
+      status !== 'cancelled' && booking
+        ? bookings.find(
+            (currentBooking) =>
+              currentBooking.id !== id &&
+              currentBooking.status !== 'cancelled' &&
+              currentBooking.pickup_date === booking.pickup_date &&
+              currentBooking.pickup_time.slice(0, 5) === booking.pickup_time.slice(0, 5)
+          )
+        : undefined;
+
+    if (conflictingBooking) {
+      setError(
+        `Cannot set this booking to ${status}: the time slot is already held by ${
+          conflictingBooking.booking_reference ?? conflictingBooking.name
+        }.`
+      );
+      return;
+    }
+
     setUpdatingId(id);
 
     const { error: updateError } = await supabase.from('bookings').update({ status }).eq('id', id);
 
     if (updateError) {
-      setError('Failed to update booking status.');
+      if (updateError.code === '23505' || updateError.message.includes('bookings_active_slot_key')) {
+        setError('Cannot update this booking because another active booking already holds this date and time.');
+      } else {
+        setError(`Failed to update booking status: ${updateError.message}`);
+      }
     } else {
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: status as Booking['status'] } : b)));
     }
