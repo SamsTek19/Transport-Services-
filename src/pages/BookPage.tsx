@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Phone, Calendar, MapPin, Users, AlertCircle, Loader2, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Booking } from '../types';
@@ -20,6 +20,7 @@ export function BookPage() {
     dropoff_address: '',
     pickup_date: '',
     pickup_time: '',
+    return_time: '',
     passengers: 1,
     wheelchair_accessible: false,
     round_trip: false,
@@ -35,6 +36,7 @@ export function BookPage() {
   const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState('');
+  const returnTimeRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setOccupiedTimes([]);
@@ -69,6 +71,23 @@ export function BookPage() {
     };
   }, [formData.pickup_date]);
 
+  useEffect(() => {
+    if (!formData.round_trip) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const returnTimeInput = returnTimeRef.current;
+      if (!returnTimeInput) return;
+
+      returnTimeInput.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'center',
+      });
+      returnTimeInput.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [formData.round_trip]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     let newValue: string | number | boolean = value;
@@ -87,6 +106,11 @@ export function BookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.round_trip && !formData.return_time) {
+      setSubmitStatus('error');
+      setSubmitError('Please select a return time for your round trip.');
+      return;
+    }
     if (occupiedTimes.includes(normalizePickupTime(formData.pickup_time))) {
       setSubmitStatus('error');
       setSubmitError('This date and time has already been booked. Please select another time.');
@@ -317,6 +341,25 @@ export function BookPage() {
                       <p className="text-sm text-red-700 mt-2">This date and time has already been booked. Please select another time.</p>
                     )}
                   </div>
+                  {formData.round_trip && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Return Time <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="time"
+                        name="return_time"
+                        ref={returnTimeRef}
+                        value={formData.return_time ?? ''}
+                        onChange={handleChange}
+                        min="00:00"
+                        max="23:59"
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">Choose a return time within 24 hours of pickup.</p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Number of Passengers

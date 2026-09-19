@@ -7,6 +7,7 @@ export interface Booking {
   dropoff_address: string;
   pickup_date: string;
   pickup_time: string;
+  return_time?: string;
   passengers: number;
   wheelchair_accessible: boolean;
   round_trip: boolean;

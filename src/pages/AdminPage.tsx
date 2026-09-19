@@ -759,7 +759,10 @@ function AdminDashboard({ session }: { session: Session }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-gray-900">{formatDate(booking.pickup_date)}</div>
-                        <div className="text-gray-500 text-xs">{booking.pickup_time}</div>
+                        <div className="text-gray-500 text-xs">Pickup: {booking.pickup_time}</div>
+                        <div className={booking.return_time ? 'text-teal-700 text-xs font-medium mt-1' : 'text-gray-400 text-xs mt-1'}>
+                          Return: {booking.return_time ?? 'Not set'}
+                        </div>
                         <div className="text-gray-500 text-xs mt-0.5">
                           {booking.passengers} passenger{booking.passengers !== 1 ? 's' : ''}
                         </div>
