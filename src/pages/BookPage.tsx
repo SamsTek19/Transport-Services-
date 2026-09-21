@@ -3,7 +3,7 @@ import { Phone, Calendar, MapPin, Users, AlertCircle, Loader2, DollarSign } from
 import { supabase } from '../lib/supabase';
 import type { Booking } from '../types';
 import { PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
-import { calculateFare } from '../lib/fare';
+import { calculateFare, FARE_RULES } from '../lib/fare';
 import { useNavigation } from '../hooks/useNavigation';
 
 function normalizePickupTime(value: string) {
@@ -36,6 +36,8 @@ export function BookPage() {
   const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState('');
+  const [showTermsModal, setShowTermsModal] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const returnTimeRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -111,6 +113,12 @@ export function BookPage() {
       setSubmitError('Please select a return time for your round trip.');
       return;
     }
+    if (!termsAccepted) {
+      setSubmitStatus('error');
+      setSubmitError('Please accept the terms and conditions before proceeding with your booking request.');
+      setShowTermsModal(true);
+      return;
+    }
     if (occupiedTimes.includes(normalizePickupTime(formData.pickup_time))) {
       setSubmitStatus('error');
       setSubmitError('This date and time has already been booked. Please select another time.');
@@ -183,8 +191,106 @@ export function BookPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl p-8 md:p-10">
-            <div className="space-y-8">
+          {showTermsModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 overflow-hidden">
+              <div className="w-full max-w-3xl max-h-[90vh] rounded-3xl bg-white p-6 shadow-2xl md:p-8 flex flex-col">
+                <div className="flex items-start justify-between gap-4 shrink-0">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-teal-600">Booking Policy</p>
+                    <h2 className="mt-2 text-2xl font-bold text-gray-900">Terms and Conditions</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate('home')}
+                    className="rounded-full border border-gray-200 px-3 py-1 text-sm font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div className="mt-6 overflow-y-auto pr-2 text-sm text-gray-700">
+                  <div className="space-y-4">
+                    <p className="font-medium text-gray-800">Please review the booking rates and service terms below.</p>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl border border-teal-100 bg-teal-50 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-teal-700">Minimum charge</p>
+                        <p className="mt-1 text-xl font-bold text-gray-900">${FARE_RULES.minimumFare.toFixed(2)}</p>
+                      </div>
+                      <div className="rounded-xl border border-teal-100 bg-teal-50 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-teal-700">Mileage</p>
+                        <p className="mt-1 text-xl font-bold text-gray-900">${FARE_RULES.mileageRate.toFixed(2)}/mile</p>
+                      </div>
+                      <div className="rounded-xl border border-teal-100 bg-teal-50 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-teal-700">Waiting time</p>
+                        <p className="mt-1 text-xl font-bold text-gray-900">${FARE_RULES.waitingBlockRate.toFixed(2)}/quarter hour</p>
+                      </div>
+                      <div className="rounded-xl border border-teal-100 bg-teal-50 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-teal-700">Included</p>
+                        <p className="mt-1 text-xl font-bold text-gray-900">{FARE_RULES.includedMiles} miles</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                      <p><strong>Last Updated:</strong> September 21, 2026</p>
+                      <p>Welcome to Angels of Hope Transportation LLC. By requesting, booking, or using our transportation services, you acknowledge that you have read, understood, and agreed to the following Terms &amp; Conditions.</p>
+                      <p><strong>1. Transportation Services</strong><br />Angels of Hope Transportation LLC provides passenger transportation services over irregular routes and on an irregular schedule.</p>
+                      <p>Our service area includes points within the following Virginia cities and counties: Alexandria, Fairfax, Falls Church, Manassas, and Manassas Park; Arlington, Fairfax, Fauquier, Loudoun, Prince William, and Stafford.</p>
+                      <p>Our transportation services are limited to vehicles with a seating capacity of no more than 15 passengers, including the driver.</p>
+                      <p><strong>2. Rates and Charges</strong><br />Unless otherwise stated or required for Medicaid transportation, the applicable charges are: Minimum Charge $25.00, covering up to and including the first 4 miles; Mileage $2.50 per mile; Waiting Time $10.00 per quarter hour, or fraction thereof, when waiting time is requested or directed by the passenger.</p>
+                      <p><strong>3. Booking and Trip Information</strong><br />Passengers are responsible for providing accurate information when making a reservation, including pickup location, destination, date and requested time, number of passengers, and other required information.</p>
+                      <p><strong>4. Waiting Time and Stops</strong><br />Passengers may be charged for waiting time when the vehicle is required to wait at the passenger's direction.</p>
+                      <p><strong>5. Passenger Responsibilities</strong><br />Passengers are expected to treat the driver and other passengers with respect, follow safety instructions, remain seated while the vehicle is moving, and avoid damaging the vehicle.</p>
+                      <p><strong>6. Cleaning Charge</strong><br />If a passenger soils the vehicle to an extent that makes it unpresentable or unsuitable for further use, a $100 cleaning charge may be assessed.</p>
+                      <p><strong>7. Damage to Vehicle</strong><br />If a passenger causes damage to the vehicle or its equipment, the responsible passenger may be charged for reasonable repair costs.</p>
+                      <p><strong>8. Safety</strong><br />Passenger and driver safety are a priority. The driver may refuse or discontinue transportation when necessary to address an immediate safety concern.</p>
+                      <p><strong>9. Medicaid Transportation</strong><br />When transportation is provided to a Medicaid recipient, the applicable Medicaid requirements and reimbursable rates in effect at the time of service will apply.</p>
+                      <p><strong>10. Changes to Transportation Services</strong><br />Transportation schedules and trip details may change based on operational needs. Passengers should contact us as soon as possible if they need to make changes.</p>
+                      <p><strong>11. Agreement to These Terms</strong><br />By booking or using transportation services provided by Angels of Hope Transportation LLC, the passenger or authorized representative acknowledges that they have had an opportunity to review these Terms &amp; Conditions and agrees to comply with the applicable terms.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <label className="mt-6 flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4 shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(event) => setTermsAccepted(event.target.checked)}
+                    className="mt-1 h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I have read and agree to the Angels of Hope Transportation LLC Terms &amp; Conditions, including the applicable rates, waiting-time charges, cleaning charges, and damage provisions.
+                  </span>
+                </label>
+
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => navigate('home')}
+                    className="rounded-xl border border-gray-200 px-5 py-3 font-medium text-gray-700 hover:border-gray-300 hover:text-gray-900"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmitStatus('idle');
+                      setSubmitError('');
+                      setShowTermsModal(false);
+                    }}
+                    disabled={!termsAccepted}
+                    className="rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 px-5 py-3 font-semibold text-white shadow-lg transition-all hover:from-teal-700 hover:to-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Continue to Booking
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!showTermsModal && (
+            <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl p-8 md:p-10">
+              <div className="space-y-8">
               {/* Contact Information */}
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
@@ -474,9 +580,21 @@ export function BookPage() {
 
               {/* Submit Button */}
               <div className="pt-4">
+                <label className="mb-4 flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-left">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(event) => setTermsAccepted(event.target.checked)}
+                    className="mt-1 h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I have read and agree to the Angels of Hope Transportation LLC Terms &amp; Conditions, including the applicable rates, waiting-time charges, cleaning charges, and damage provisions.
+                  </span>
+                </label>
+
                 <button
                   type="submit"
-                  disabled={isSubmitting || timeUnavailable}
+                  disabled={isSubmitting || timeUnavailable || !termsAccepted}
                   className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 hover:from-teal-700 hover:to-teal-800 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
@@ -494,6 +612,7 @@ export function BookPage() {
               </div>
             </div>
           </form>
+          )}
 
           {/* Alternative Contact */}
           <div className="mt-8 text-center">
