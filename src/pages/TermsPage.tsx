@@ -2,11 +2,18 @@ import { CheckCircle, DollarSign, FileText, Shield } from 'lucide-react';
 import { useNavigation } from '../hooks/useNavigation';
 import { PHONE_DISPLAY } from '../constants/site';
 import { FARE_RULES } from '../lib/fare';
+import { DEFAULT_TERMS, fetchSiteTerms } from '../lib/terms';
+import { useEffect, useState } from 'react';
 
 const money = (amount: number) => `$${amount.toFixed(2)}`;
 
 export function TermsPage() {
   const { navigate } = useNavigation();
+  const [termsContent, setTermsContent] = useState(DEFAULT_TERMS);
+
+  useEffect(() => {
+    fetchSiteTerms().then((terms) => setTermsContent(terms.content)).catch(() => undefined);
+  }, []);
 
   return (
     <div className="pt-20">
@@ -51,6 +58,16 @@ export function TermsPage() {
                 <p className="text-2xl font-bold text-gray-900 mt-1">Both legs are billed</p>
                 <p className="text-sm text-gray-600 mt-1">The entered distance is doubled for round-trip mileage.</p>
               </div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="flex items-center gap-3 mb-5">
+              <FileText className="w-6 h-6 text-teal-600" />
+              <h2 className="text-2xl font-bold text-gray-900">Terms and conditions</h2>
+            </div>
+            <div className="space-y-4 text-gray-700 whitespace-pre-line">
+              {termsContent.split('\n\n').map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 12)}`}>{paragraph}</p>)}
             </div>
           </section>
 

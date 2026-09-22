@@ -5,6 +5,7 @@ import type { Booking } from '../types';
 import { PHONE_DISPLAY, PHONE_E164 } from '../constants/site';
 import { calculateFare, FARE_RULES } from '../lib/fare';
 import { useNavigation } from '../hooks/useNavigation';
+import { DEFAULT_TERMS, fetchSiteTerms } from '../lib/terms';
 
 function normalizePickupTime(value: string) {
   return value.trim().slice(0, 5);
@@ -38,7 +39,12 @@ export function BookPage() {
   const [availabilityError, setAvailabilityError] = useState('');
   const [showTermsModal, setShowTermsModal] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsContent, setTermsContent] = useState(DEFAULT_TERMS);
   const returnTimeRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchSiteTerms().then((terms) => setTermsContent(terms.content)).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     setOccupiedTimes([]);
@@ -231,22 +237,8 @@ export function BookPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                      <p><strong>Last Updated:</strong> September 21, 2026</p>
-                      <p>Welcome to Angels of Hope Transportation LLC. By requesting, booking, or using our transportation services, you acknowledge that you have read, understood, and agreed to the following Terms &amp; Conditions.</p>
-                      <p><strong>1. Transportation Services</strong><br />Angels of Hope Transportation LLC provides passenger transportation services over irregular routes and on an irregular schedule.</p>
-                      <p>Our service area includes points within the following Virginia cities and counties: Alexandria, Fairfax, Falls Church, Manassas, and Manassas Park; Arlington, Fairfax, Fauquier, Loudoun, Prince William, and Stafford.</p>
-                      <p>Our transportation services are limited to vehicles with a seating capacity of no more than 15 passengers, including the driver.</p>
-                      <p><strong>2. Rates and Charges</strong><br />Unless otherwise stated or required for Medicaid transportation, the applicable charges are: Minimum Charge $25.00, covering up to and including the first 4 miles; Mileage $2.50 per mile; Waiting Time $10.00 per quarter hour, or fraction thereof, when waiting time is requested or directed by the passenger.</p>
-                      <p><strong>3. Booking and Trip Information</strong><br />Passengers are responsible for providing accurate information when making a reservation, including pickup location, destination, date and requested time, number of passengers, and other required information.</p>
-                      <p><strong>4. Waiting Time and Stops</strong><br />Passengers may be charged for waiting time when the vehicle is required to wait at the passenger's direction.</p>
-                      <p><strong>5. Passenger Responsibilities</strong><br />Passengers are expected to treat the driver and other passengers with respect, follow safety instructions, remain seated while the vehicle is moving, and avoid damaging the vehicle.</p>
-                      <p><strong>6. Cleaning Charge</strong><br />If a passenger soils the vehicle to an extent that makes it unpresentable or unsuitable for further use, a $100 cleaning charge may be assessed.</p>
-                      <p><strong>7. Damage to Vehicle</strong><br />If a passenger causes damage to the vehicle or its equipment, the responsible passenger may be charged for reasonable repair costs.</p>
-                      <p><strong>8. Safety</strong><br />Passenger and driver safety are a priority. The driver may refuse or discontinue transportation when necessary to address an immediate safety concern.</p>
-                      <p><strong>9. Medicaid Transportation</strong><br />When transportation is provided to a Medicaid recipient, the applicable Medicaid requirements and reimbursable rates in effect at the time of service will apply.</p>
-                      <p><strong>10. Changes to Transportation Services</strong><br />Transportation schedules and trip details may change based on operational needs. Passengers should contact us as soon as possible if they need to make changes.</p>
-                      <p><strong>11. Agreement to These Terms</strong><br />By booking or using transportation services provided by Angels of Hope Transportation LLC, the passenger or authorized representative acknowledges that they have had an opportunity to review these Terms &amp; Conditions and agrees to comply with the applicable terms.</p>
+                    <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-4 whitespace-pre-line">
+                      {termsContent.split('\n\n').map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 12)}`}>{paragraph}</p>)}
                     </div>
                   </div>
                 </div>

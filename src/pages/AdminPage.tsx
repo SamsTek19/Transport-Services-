@@ -16,6 +16,10 @@ import {
   CreditCard,
   Banknote,
   Trash2,
+  Edit,
+  FileText,
+  Save,
+  X,
 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -23,6 +27,7 @@ import { checkIsAdmin, inviteAdminUser } from '../lib/admin';
 import { clearAuthParamsFromUrl, isAuthCallbackInUrl, isPasswordSetupPending, userNeedsPasswordSetup } from '../lib/auth';
 import { useNavigation } from '../hooks/useNavigation';
 import type { Booking } from '../types';
+import { DEFAULT_TERMS, fetchSiteTerms, updateSiteTerms } from '../lib/terms';
 
 const STATUS_OPTIONS = ['pending', 'confirmed', 'completed', 'cancelled'] as const;
 const PAYMENT_STATUS_OPTIONS = ['pending', 'paid', 'refunded', 'failed'] as const;
@@ -407,6 +412,10 @@ function AdminDashboard({ session }: { session: Session }) {
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [availabilityDate, setAvailabilityDate] = useState('');
   const [availabilityTime, setAvailabilityTime] = useState('');
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [termsContent, setTermsContent] = useState(DEFAULT_TERMS);
+  const [termsUpdatedAt, setTermsUpdatedAt] = useState<string | undefined>();
+  const [isSavingTerms, setIsSavingTerms] = useState(false);
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -430,6 +439,34 @@ function AdminDashboard({ session }: { session: Session }) {
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  useEffect(() => {
+    fetchSiteTerms()
+      .then((terms) => {
+        setTermsContent(terms.content);
+        setTermsUpdatedAt(terms.updated_at);
+      })
+      .catch(() => setError('Failed to load terms and conditions.'));
+  }, []);
+
+  const handleSaveTerms = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!termsContent.trim()) {
+      setError('Terms and conditions cannot be empty.');
+      return;
+    }
+    setIsSavingTerms(true);
+    setError('');
+    try {
+      const savedTerms = await updateSiteTerms(termsContent.trim());
+      setTermsContent(savedTerms.content);
+      setTermsUpdatedAt(savedTerms.updated_at);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Failed to save terms and conditions.');
+    } finally {
+      setIsSavingTerms(false);
+    }
+  };
 
   const handleStatusChange = async (id: string, status: string) => {
     const booking = bookings.find((currentBooking) => currentBooking.id === id);
@@ -481,6 +518,54 @@ function AdminDashboard({ session }: { session: Session }) {
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, payment_status } : b)));
     }
 
+    setUpdatingId(null);
+  };
+
+  const handleBookingEditChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (!editingBooking) return;
+    const { name, value, type } = event.target;
+    const fieldValue = type === 'checkbox' ? (event.target as HTMLInputElement).checked : type === 'number' ? Number(value) : value;
+    setEditingBooking({ ...editingBooking, [name]: fieldValue });
+  };
+
+  const handleSaveBooking = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!editingBooking?.id) return;
+    setUpdatingId(editingBooking.id);
+    setError('');
+
+    const editableFields = {
+      name: editingBooking.name.trim(),
+      email: editingBooking.email.trim() || null,
+      phone: editingBooking.phone.trim(),
+      pickup_address: editingBooking.pickup_address.trim(),
+      dropoff_address: editingBooking.dropoff_address.trim(),
+      pickup_date: editingBooking.pickup_date,
+      pickup_time: editingBooking.pickup_time,
+      return_time: editingBooking.round_trip ? editingBooking.return_time || null : null,
+      passengers: editingBooking.passengers,
+      wheelchair_accessible: editingBooking.wheelchair_accessible,
+      round_trip: editingBooking.round_trip,
+      distance_miles: editingBooking.distance_miles,
+      waiting_minutes: editingBooking.waiting_minutes,
+      payment_method: editingBooking.payment_method,
+      special_requests: editingBooking.special_requests?.trim() || null,
+      status: editingBooking.status,
+      payment_status: editingBooking.payment_status,
+    };
+    const { data, error: updateError } = await supabase
+      .from('bookings')
+      .update(editableFields)
+      .eq('id', editingBooking.id)
+      .select('*')
+      .single();
+
+    if (updateError) {
+      setError(updateError.code === '23505' ? 'Cannot save this booking because another active booking already holds that date and time.' : `Failed to save booking: ${updateError.message}`);
+    } else {
+      setBookings((prev) => prev.map((booking) => (booking.id === editingBooking.id ? data : booking)));
+      setEditingBooking(null);
+    }
     setUpdatingId(null);
   };
 
@@ -563,6 +648,36 @@ function AdminDashboard({ session }: { session: Session }) {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <InviteAdminForm />
+
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+          <div className="flex items-center gap-2 mb-2">
+            <FileText className="w-5 h-5 text-teal-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Terms and Conditions</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">This text is shown on the public terms page and before customers submit a booking.</p>
+          <form onSubmit={handleSaveTerms}>
+            <textarea
+              value={termsContent}
+              onChange={(event) => setTermsContent(event.target.value)}
+              rows={14}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm leading-6 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              aria-label="Terms and conditions"
+            />
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-xs text-gray-500">
+                {termsUpdatedAt ? `Last saved ${formatDateTime(termsUpdatedAt)}` : 'Using the default terms until saved.'}
+              </p>
+              <button
+                type="submit"
+                disabled={isSavingTerms}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700 disabled:opacity-60"
+              >
+                {isSavingTerms ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save Terms
+              </button>
+            </div>
+          </form>
+        </section>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
@@ -822,15 +937,26 @@ function AdminDashboard({ session }: { session: Session }) {
                         {booking.created_at ? formatDateTime(booking.created_at) : '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteBooking(booking)}
-                          disabled={updatingId === booking.id}
-                          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 disabled:opacity-50"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Delete Booking
-                        </button>
+                        <div className="flex flex-col gap-2 items-start">
+                          <button
+                            type="button"
+                            onClick={() => setEditingBooking({ ...booking })}
+                            disabled={updatingId === booking.id}
+                            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 disabled:opacity-50"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            Edit Booking
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBooking(booking)}
+                            disabled={updatingId === booking.id}
+                            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Booking
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -839,6 +965,82 @@ function AdminDashboard({ session }: { session: Session }) {
             </div>
           )}
         </div>
+
+        {editingBooking && (
+          <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4">
+            <form onSubmit={handleSaveBooking} className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Edit Booking</h2>
+                  <p className="text-sm text-gray-500 mt-1">{editingBooking.booking_reference ?? editingBooking.id}</p>
+                </div>
+                <button type="button" onClick={() => setEditingBooking(null)} className="p-2 text-gray-500 hover:text-gray-900" aria-label="Close edit booking">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                {[
+                  ['name', 'Name', 'text'],
+                  ['phone', 'Phone', 'tel'],
+                  ['email', 'Email', 'email'],
+                  ['pickup_address', 'Pickup address', 'text'],
+                  ['dropoff_address', 'Dropoff address', 'text'],
+                  ['pickup_date', 'Pickup date', 'date'],
+                  ['pickup_time', 'Pickup time', 'time'],
+                  ['return_time', 'Return time', 'time'],
+                  ['passengers', 'Passengers', 'number'],
+                  ['distance_miles', 'Distance (miles)', 'number'],
+                  ['waiting_minutes', 'Waiting (minutes)', 'number'],
+                ].map(([name, label, type]) => (
+                  <label key={name} className="text-sm font-medium text-gray-700">
+                    {label}
+                    <input
+                      name={name}
+                      type={type}
+                      value={String(editingBooking[name as keyof Booking] ?? '')}
+                      onChange={handleBookingEditChange}
+                      min={name === 'passengers' ? 1 : name === 'distance_miles' || name === 'waiting_minutes' ? 0 : undefined}
+                      step={name === 'distance_miles' ? '0.1' : undefined}
+                      className="block w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg font-normal"
+                    />
+                  </label>
+                ))}
+                <label className="text-sm font-medium text-gray-700">
+                  Payment method
+                  <select name="payment_method" value={editingBooking.payment_method} onChange={handleBookingEditChange} className="block w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg font-normal">
+                    <option value="card">Card</option>
+                    <option value="cash">Cash</option>
+                  </select>
+                </label>
+                <label className="text-sm font-medium text-gray-700">
+                  Status
+                  <select name="status" value={editingBooking.status ?? 'pending'} onChange={handleBookingEditChange} className="block w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg font-normal">
+                    {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}
+                  </select>
+                </label>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <input type="checkbox" name="round_trip" checked={editingBooking.round_trip} onChange={handleBookingEditChange} className="h-4 w-4 text-teal-600" />
+                  Round trip
+                </label>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <input type="checkbox" name="wheelchair_accessible" checked={editingBooking.wheelchair_accessible} onChange={handleBookingEditChange} className="h-4 w-4 text-teal-600" />
+                  Wheelchair accessible
+                </label>
+                <label className="md:col-span-2 text-sm font-medium text-gray-700">
+                  Special requests
+                  <textarea name="special_requests" value={editingBooking.special_requests ?? ''} onChange={handleBookingEditChange} rows={3} className="block w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg font-normal" />
+                </label>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" onClick={() => setEditingBooking(null)} className="px-4 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled={updatingId === editingBooking.id} className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700 disabled:opacity-60">
+                  {updatingId === editingBooking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Booking
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </main>
     </div>
   );
