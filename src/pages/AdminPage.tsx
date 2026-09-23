@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { checkIsAdmin, inviteAdminUser } from '../lib/admin';
+import { checkIsAdmin, inviteAdminUser, sendBookingNotification } from '../lib/admin';
 import { clearAuthParamsFromUrl, isAuthCallbackInUrl, isPasswordSetupPending, userNeedsPasswordSetup } from '../lib/auth';
 import { useNavigation } from '../hooks/useNavigation';
 import type { Booking } from '../types';
@@ -416,6 +416,7 @@ function AdminDashboard({ session }: { session: Session }) {
   const [termsContent, setTermsContent] = useState(DEFAULT_TERMS);
   const [termsUpdatedAt, setTermsUpdatedAt] = useState<string | undefined>();
   const [isSavingTerms, setIsSavingTerms] = useState(false);
+  const [notificationState, setNotificationState] = useState<Record<string, 'sending' | 'sent'>>({});
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -582,6 +583,28 @@ function AdminDashboard({ session }: { session: Session }) {
     }
 
     setUpdatingId(null);
+  };
+
+  const handleSendNotification = async (booking: Booking) => {
+    if (!booking.id) return;
+    setError('');
+    setNotificationState((prev) => ({ ...prev, [booking.id!]: 'sending' }));
+    try {
+      await sendBookingNotification(booking.id);
+      setNotificationState((prev) => ({ ...prev, [booking.id!]: 'sent' }));
+      window.setTimeout(() => setNotificationState((prev) => {
+        const next = { ...prev };
+        delete next[booking.id!];
+        return next;
+      }), 4000);
+    } catch (notificationError) {
+      setNotificationState((prev) => {
+        const next = { ...prev };
+        delete next[booking.id!];
+        return next;
+      });
+      setError(notificationError instanceof Error ? notificationError.message : 'Failed to send customer notification.');
+    }
   };
 
   const handleLogout = async () => {
@@ -938,6 +961,16 @@ function AdminDashboard({ session }: { session: Session }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-2 items-start">
+                          <button
+                            type="button"
+                            onClick={() => handleSendNotification(booking)}
+                            disabled={updatingId === booking.id || notificationState[booking.id ?? ''] === 'sending' || !booking.email}
+                            title={!booking.email ? 'Add a customer email before sending a notification' : undefined}
+                            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50"
+                          >
+                            {notificationState[booking.id ?? ''] === 'sending' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : notificationState[booking.id ?? ''] === 'sent' ? <CheckCircle className="w-3.5 h-3.5" /> : <Mail className="w-3.5 h-3.5" />}
+                            {notificationState[booking.id ?? ''] === 'sending' ? 'Sending...' : notificationState[booking.id ?? ''] === 'sent' ? 'Email Sent' : 'Send Update'}
+                          </button>
                           <button
                             type="button"
                             onClick={() => setEditingBooking({ ...booking })}

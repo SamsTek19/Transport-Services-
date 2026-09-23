@@ -1,6 +1,24 @@
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
+export async function sendBookingNotification(bookingId: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('send-booking-notification', {
+    body: { booking_id: bookingId },
+  });
+
+  if (error) {
+    if (error instanceof FunctionsHttpError) {
+      const response = await error.context.json().catch(() => null) as { error?: string } | null;
+      throw new Error(response?.error || error.message);
+    }
+    throw error;
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+}
+
 export async function checkIsAdmin(userId: string): Promise<boolean> {
   if (!userId) return false;
 
