@@ -53,9 +53,15 @@ Deno.serve(async (req) => {
     if (adminError) return json({ error: `Admin check failed: ${adminError.message}` }, 500);
     if (!adminRow) return json({ error: 'You are not authorized to send booking notifications.' }, 403);
 
-    const body = await req.json().catch(() => null) as { booking_id?: string } | null;
+    const body = await req.json().catch(() => null) as { booking_id?: string; subject?: string; message?: string } | null;
     if (!body?.booking_id || typeof body.booking_id !== 'string') {
       return json({ error: 'Booking ID is required.' }, 400);
+    }
+    if (body.subject !== undefined && (typeof body.subject !== 'string' || !body.subject.trim())) {
+      return json({ error: 'Email subject cannot be empty.' }, 400);
+    }
+    if (body.message !== undefined && (typeof body.message !== 'string' || !body.message.trim())) {
+      return json({ error: 'Email message cannot be empty.' }, 400);
     }
 
     const { data: booking, error: bookingError } = await supabaseAdmin
@@ -68,6 +74,8 @@ Deno.serve(async (req) => {
     if (!booking.email?.trim()) return json({ error: 'This customer does not have an email address.' }, 400);
 
     const copy = statusCopy[booking.status ?? 'pending'] ?? statusCopy.pending;
+    const subject = body.subject?.trim() || copy.subject;
+    const message = body.message?.trim() || copy.message;
     const reference = booking.booking_reference ?? 'your booking';
     const details = [
       `Booking reference: ${reference}`,
@@ -76,8 +84,8 @@ Deno.serve(async (req) => {
       `To: ${booking.dropoff_address}`,
       booking.fare_amount != null ? `Fare: $${Number(booking.fare_amount).toFixed(2)} (${booking.payment_method}, ${booking.payment_status ?? 'pending'})` : '',
     ].filter(Boolean).join('\n');
-    const text = `Hello ${booking.name},\n\n${copy.message}\n\n${details}\n\nIf you have any questions, reply to this email or contact Angels Of Hope Transportation.\n\nThank you,\nAngels Of Hope Transportation`;
-    const html = `<h2>${copy.heading}</h2><p>Hello ${escapeHtml(booking.name)},</p><p>${escapeHtml(copy.message)}</p><p><strong>Booking reference:</strong> ${escapeHtml(reference)}<br><strong>Pickup:</strong> ${escapeHtml(booking.pickup_date)} at ${escapeHtml(booking.pickup_time)}<br><strong>From:</strong> ${escapeHtml(booking.pickup_address)}<br><strong>To:</strong> ${escapeHtml(booking.dropoff_address)}${booking.fare_amount != null ? `<br><strong>Fare:</strong> $${Number(booking.fare_amount).toFixed(2)} (${escapeHtml(booking.payment_method)}, ${escapeHtml(booking.payment_status ?? 'pending')})` : ''}</p><p>If you have any questions, reply to this email or contact Angels Of Hope Transportation.</p><p>Thank you,<br>Angels Of Hope Transportation</p>`;
+    const text = `Hello ${booking.name},\n\n${message}\n\n${details}\n\nIf you have any questions, reply to this email or contact Angels Of Hope Transportation.\n\nThank you,\nAngels Of Hope Transportation`;
+    const html = `<h2>${escapeHtml(subject)}</h2><p>Hello ${escapeHtml(booking.name)},</p><p>${escapeHtml(message).replace(/\n/g, '<br>')}</p><p><strong>Booking reference:</strong> ${escapeHtml(reference)}<br><strong>Pickup:</strong> ${escapeHtml(booking.pickup_date)} at ${escapeHtml(booking.pickup_time)}<br><strong>From:</strong> ${escapeHtml(booking.pickup_address)}<br><strong>To:</strong> ${escapeHtml(booking.dropoff_address)}${booking.fare_amount != null ? `<br><strong>Fare:</strong> $${Number(booking.fare_amount).toFixed(2)} (${escapeHtml(booking.payment_method)}, ${escapeHtml(booking.payment_status ?? 'pending')})` : ''}</p><p>If you have any questions, reply to this email or contact Angels Of Hope Transportation.</p><p>Thank you,<br>Angels Of Hope Transportation</p>`;
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) return json({ error: 'Email service is not configured. Add RESEND_API_KEY to Supabase secrets.' }, 503);
 
@@ -91,7 +99,7 @@ Deno.serve(async (req) => {
         from: Deno.env.get('EMAIL_FROM') || 'Angels Of Hope Transportation <onboarding@resend.dev>',
         reply_to: 'angelsofhopetransportation@gmail.com',
         to: [booking.email.trim()],
-        subject: copy.subject,
+        subject,
         text,
         html,
       }),

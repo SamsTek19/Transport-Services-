@@ -1,9 +1,12 @@
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
-export async function sendBookingNotification(bookingId: string): Promise<void> {
+export async function sendBookingNotification(
+  bookingId: string,
+  message?: { subject: string; message: string }
+): Promise<void> {
   const { data, error } = await supabase.functions.invoke('send-booking-notification', {
-    body: { booking_id: bookingId },
+    body: { booking_id: bookingId, ...message },
   });
 
   if (error) {

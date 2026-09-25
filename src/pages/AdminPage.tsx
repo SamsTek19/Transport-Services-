@@ -32,6 +32,25 @@ import { DEFAULT_TERMS, fetchSiteTerms, updateSiteTerms } from '../lib/terms';
 const STATUS_OPTIONS = ['pending', 'confirmed', 'completed', 'cancelled'] as const;
 const PAYMENT_STATUS_OPTIONS = ['pending', 'paid', 'refunded', 'failed'] as const;
 
+const NOTIFICATION_COPY: Record<string, { subject: string; message: string }> = {
+  pending: {
+    subject: 'Your Angels Of Hope Transportation request is being reviewed',
+    message: 'We received your ride request and our team is reviewing the details. We will follow up with any next steps.',
+  },
+  confirmed: {
+    subject: 'Your Angels Of Hope Transportation ride is confirmed',
+    message: 'Your transportation request has been confirmed. Please keep this email for your records.',
+  },
+  completed: {
+    subject: 'Thank you for riding with Angels Of Hope Transportation',
+    message: 'Your ride has been marked completed. Thank you for choosing Angels Of Hope Transportation.',
+  },
+  cancelled: {
+    subject: 'Update about your Angels Of Hope Transportation ride',
+    message: 'Your transportation request has been cancelled. Please contact us if you have questions or need to arrange another ride.',
+  },
+};
+
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-800',
   confirmed: 'bg-blue-100 text-blue-800',
@@ -417,6 +436,7 @@ function AdminDashboard({ session }: { session: Session }) {
   const [termsUpdatedAt, setTermsUpdatedAt] = useState<string | undefined>();
   const [isSavingTerms, setIsSavingTerms] = useState(false);
   const [notificationState, setNotificationState] = useState<Record<string, 'sending' | 'sent'>>({});
+  const [notificationDraft, setNotificationDraft] = useState<{ booking: Booking; subject: string; message: string } | null>(null);
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -585,22 +605,25 @@ function AdminDashboard({ session }: { session: Session }) {
     setUpdatingId(null);
   };
 
-  const handleSendNotification = async (booking: Booking) => {
-    if (!booking.id) return;
+  const handleSendNotification = async () => {
+    const bookingId = notificationDraft?.booking.id;
+    if (!bookingId) return;
+    const { subject, message } = notificationDraft;
     setError('');
-    setNotificationState((prev) => ({ ...prev, [booking.id!]: 'sending' }));
+    setNotificationState((prev) => ({ ...prev, [bookingId]: 'sending' }));
     try {
-      await sendBookingNotification(booking.id);
-      setNotificationState((prev) => ({ ...prev, [booking.id!]: 'sent' }));
+      await sendBookingNotification(bookingId, { subject: subject.trim(), message: message.trim() });
+      setNotificationDraft(null);
+      setNotificationState((prev) => ({ ...prev, [bookingId]: 'sent' }));
       window.setTimeout(() => setNotificationState((prev) => {
         const next = { ...prev };
-        delete next[booking.id!];
+        delete next[bookingId];
         return next;
       }), 4000);
     } catch (notificationError) {
       setNotificationState((prev) => {
         const next = { ...prev };
-        delete next[booking.id!];
+        delete next[bookingId];
         return next;
       });
       setError(notificationError instanceof Error ? notificationError.message : 'Failed to send customer notification.');
@@ -963,7 +986,10 @@ function AdminDashboard({ session }: { session: Session }) {
                         <div className="flex flex-col gap-2 items-start">
                           <button
                             type="button"
-                            onClick={() => handleSendNotification(booking)}
+                            onClick={() => {
+                              const copy = NOTIFICATION_COPY[booking.status ?? 'pending'] ?? NOTIFICATION_COPY.pending;
+                              setNotificationDraft({ booking, ...copy });
+                            }}
                             disabled={updatingId === booking.id || notificationState[booking.id ?? ''] === 'sending' || !booking.email}
                             title={!booking.email ? 'Add a customer email before sending a notification' : undefined}
                             className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50"
@@ -1069,6 +1095,57 @@ function AdminDashboard({ session }: { session: Session }) {
                 <button type="submit" disabled={updatingId === editingBooking.id} className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-700 disabled:opacity-60">
                   {updatingId === editingBooking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save Booking
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {notificationDraft && (
+          <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleSendNotification();
+              }}
+              className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Edit Email Before Sending</h2>
+                  <p className="text-sm text-gray-500 mt-1">To: {notificationDraft.booking.email}</p>
+                </div>
+                <button type="button" onClick={() => setNotificationDraft(null)} className="p-2 text-gray-500 hover:text-gray-900" aria-label="Close email editor">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Subject
+                  <input
+                    value={notificationDraft.subject}
+                    onChange={(event) => setNotificationDraft({ ...notificationDraft, subject: event.target.value })}
+                    required
+                    className="block w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg font-normal"
+                  />
+                </label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Message
+                  <textarea
+                    value={notificationDraft.message}
+                    onChange={(event) => setNotificationDraft({ ...notificationDraft, message: event.target.value })}
+                    required
+                    rows={8}
+                    className="block w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg font-normal"
+                  />
+                </label>
+                <p className="text-xs text-gray-500">Booking details and the reply-to address will be included automatically.</p>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" onClick={() => setNotificationDraft(null)} className="px-4 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled={notificationState[notificationDraft.booking.id ?? ''] === 'sending'} className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60">
+                  {notificationState[notificationDraft.booking.id ?? ''] === 'sending' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                  Send Email
                 </button>
               </div>
             </form>
